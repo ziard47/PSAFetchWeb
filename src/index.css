@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+@layer utilities {
+  /* Green Liquid Glass Core Utilities */
+  .liquid-glass {
+    background: rgba(13, 30, 24, 0.65);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(52, 211, 153, 0.22);
+    box-shadow: 
+      0 8px 32px 0 rgba(0, 0, 0, 0.37),
+      inset 0 1px 1px 0 rgba(167, 243, 208, 0.15),
+      0 0 15px -3px rgba(16, 185, 129, 0.12);
+  }
+
+  .liquid-glass-card {
+    background: linear-gradient(
+      135deg,
+      rgba(16, 44, 34, 0.7) 0%,
+      rgba(6, 25, 20, 0.85) 100%
+    );
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    box-shadow: 
+      0 12px 36px 0 rgba(2, 14, 10, 0.6),
+      inset 0 1px 2px 0 rgba(110, 231, 183, 0.25),
+      inset 0 -1px 2px 0 rgba(5, 150, 105, 0.15);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .liquid-glass-card:hover {
+    transform: translateY(-6px) scale(1.015);
+    border-color: rgba(52, 211, 153, 0.5);
+    box-shadow: 
+      0 20px 48px 0 rgba(5, 150, 105, 0.25),
+      0 0 25px 2px rgba(16, 185, 129, 0.35),
+      inset 0 1px 3px 0 rgba(167, 243, 208, 0.4);
+  }
+
+  .liquid-glass-pill {
+    background: rgba(16, 185, 129, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+  }
+
+  .liquid-glow-text {
+    text-shadow: 0 0 20px rgba(52, 211, 153, 0.6), 0 0 40px rgba(16, 185, 129, 0.3);
+  }
+
+  .liquid-glow-emerald {
+    box-shadow: 0 0 25px 2px rgba(16, 185, 129, 0.4);
+  }
+
+  .liquid-border {
+    border-image: linear-gradient(135deg, rgba(52, 211, 153, 0.6), rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.4)) 1;
+  }
+}
+
+/* Liquid Blob Ambient Background Animations */
+@keyframes fluid-blob-1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(40px, -60px) scale(1.15) rotate(40deg);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.92) rotate(-30deg);
+  }
+}
+
+@keyframes fluid-blob-2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(-50px, 40px) scale(1.2) rotate(-45deg);
+  }
+  66% {
+    transform: translate(40px, -40px) scale(0.88) rotate(35deg);
+  }
+}
+
+@keyframes fluid-blob-3 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(25px, -35px) scale(1.1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-blob-1 {
+  animation: fluid-blob-1 18s ease-in-out infinite;
+}
+
+.animate-blob-2 {
+  animation: fluid-blob-2 22s ease-in-out infinite;
+}
+
+.animate-blob-3 {
+  animation: fluid-blob-3 15s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(16,185,129,0.05) 25%, rgba(52,211,153,0.2) 50%, rgba(16,185,129,0.05) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Custom Scrollbar for Liquid Glass Aesthetic */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(3, 18, 14, 0.7);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(52, 211, 153, 0.3);
+  border-radius: 9999px;
+  border: 2px solid rgba(3, 18, 14, 0.7);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 211, 153, 0.6);
+}
