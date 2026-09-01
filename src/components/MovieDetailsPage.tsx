@@ -263,6 +263,7 @@ export const MovieDetailsPage: React.FC<MovieDetailsPageProps> = ({
                     src={movie.Poster}
                     alt={movie.Title}
                     className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
                     onError={() => setPosterError(true)}
                   />
                 ) : (

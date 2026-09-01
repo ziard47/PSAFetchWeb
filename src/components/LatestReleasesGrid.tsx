@@ -47,17 +47,17 @@ export const LatestReleasesGrid: React.FC<LatestReleasesGridProps> = ({
 
   const sectionTitle =
     filterType === "movie"
-      ? `Top Rated Movies`
+      ? `Latest PSA Movie Releases`
       : filterType === "series"
-        ? `Top Rated TV Series`
-        : `Latest & Highest Rated Releases`;
+        ? `Latest PSA TV Series Releases`
+        : `Latest PSA Releases`;
 
   const sectionSubtitle =
     filterType === "movie"
-      ? `Current year's highest IMDb rated movies fetched live`
+      ? `Latest movie encodes fetched live from official PSA feed (psa.wf)`
       : filterType === "series"
-        ? `Current year's highest IMDb rated television series fetched live`
-        : `Real-time top IMDb rated movies & series released this year`;
+        ? `Latest TV show and series encodes fetched live from official PSA feed (psa.wf)`
+        : `Real-time movie and television encodes fetched live from official PSA feed (psa.wf)`;
 
   return (
     <Box sx={{ mt: 3 }}>
@@ -118,7 +118,7 @@ export const LatestReleasesGrid: React.FC<LatestReleasesGridProps> = ({
         >
           <CircularProgress size={36} sx={{ color: "#34d399" }} />
           <Typography variant="body2" sx={{ color: "#a7f3d0", opacity: 0.8 }}>
-            Fetching current year highest IMDb rated releases...
+            Fetching latest releases from official PSA feed (psa.wf)...
           </Typography>
         </Box>
       ) : (

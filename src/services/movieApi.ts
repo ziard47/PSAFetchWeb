@@ -9,6 +9,20 @@ function getNextKey(): string {
   return key
 }
 
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&#8217;/g, "'")
+    .replace(/&#8216;/g, "'")
+    .replace(/&#8220;/g, '"')
+    .replace(/&#8221;/g, '"')
+    .replace(/&#8230;/g, '...')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+}
+
 const memoryCache = new Map<string, any>()
 
 export interface SearchResult {
@@ -130,11 +144,28 @@ export async function getMovieDetails(id: string): Promise<MovieDetails | null> 
         return details
       }
     } catch {
-      // Fall through to OMDb
+      // Fall through
     }
   }
 
-  // Fetch from OMDb
+  // If it's a PSA fallback ID
+  if (id.startsWith('psa-')) {
+    const rawSearch = id.replace('psa-', '').replace(/-/g, ' ')
+    try {
+      const searchRes = await searchMovies(rawSearch)
+      if (searchRes.movies.length > 0) {
+        const details = await getMovieDetails(searchRes.movies[0].imdbID)
+        if (details) {
+          memoryCache.set(cacheKey, details)
+          return details
+        }
+      }
+    } catch {
+      // Continue
+    }
+  }
+
+  // Fetch from OMDb by imdbID
   for (let attempt = 0; attempt < OMDB_KEYS.length; attempt++) {
     const key = getNextKey()
     try {
@@ -217,87 +248,148 @@ export async function getSeasonEpisodes(seriesId: string, seasonNumber: number):
   return null
 }
 
-let cachedLatestReleases: MovieSummary[] | null = null
+let cachedPsaReleases: MovieSummary[] | null = null
 
 /**
- * Dynamically fetches current year's highest IMDb rated movies and series from live catalog API
+ * Parses items from the official psa.wf/feed/ RSS feed
  */
-export async function fetchLatestReleases(): Promise<MovieSummary[]> {
-  if (cachedLatestReleases && cachedLatestReleases.length > 0) {
-    return cachedLatestReleases
+function parsePsaFeedXml(xmlText: string): { title: string; pureTitle: string; year: string; type: 'movie' | 'series'; poster: string; link: string }[] {
+  const items: { title: string; pureTitle: string; year: string; type: 'movie' | 'series'; poster: string; link: string }[] = []
+  const itemMatches = xmlText.match(/<item>[\s\S]*?<\/item>/gi) || []
+
+  for (const it of itemMatches) {
+    const rawTitle = (it.match(/<title>([\s\S]*?)<\/title>/i) || [])[1] || ''
+    const rawLink = (it.match(/<link>([\s\S]*?)<\/link>/i) || [])[1] || ''
+    const desc = (it.match(/<description>([\s\S]*?)<\/description>/i) || [])[1] || ''
+    const cats = [...it.matchAll(/<category><!\[CDATA\[([\s\S]*?)\]\]><\/category>/gi)].map((m) => m[1])
+
+    const cleanTitle = decodeHtmlEntities(rawTitle).trim()
+    if (!cleanTitle) continue
+
+    const isSeries = cats.some((c) => /tv-show|tv pack|series|episode/i.test(c)) || /\/tv-show\//i.test(rawLink)
+
+    // Extract release year
+    const yearInTitle = cleanTitle.match(/\((\d{4})\)/)
+    const catYear = cats.find((c) => /^\d{4}$/.test(c))
+    const currentYear = new Date().getFullYear().toString()
+    const year = yearInTitle ? yearInTitle[1] : catYear || currentYear
+
+    const pureTitle = cleanTitle.replace(/\s*\(\d{4}\)\s*/, '').trim()
+
+    // Extract image thumbnail from description
+    const imgMatch = desc.match(/src="([^"]+)"/i) || desc.match(/src='([^']+)'/i)
+    const poster = imgMatch ? imgMatch[1] : ''
+
+    items.push({
+      title: cleanTitle,
+      pureTitle,
+      year,
+      type: isSeries ? 'series' : 'movie',
+      poster,
+      link: rawLink,
+    })
   }
 
-  const currentYear = new Date().getFullYear()
-  const catalogUrls = [
-    'https://v3-cinemeta.strem.io/catalog/movie/top.json',
-    'https://v3-cinemeta.strem.io/catalog/series/top.json',
-    'https://v3-cinemeta.strem.io/catalog/movie/top/genre=Action.json',
-    'https://v3-cinemeta.strem.io/catalog/movie/top/genre=Drama.json',
-    'https://v3-cinemeta.strem.io/catalog/movie/top/genre=Science%20Fiction.json',
-    'https://v3-cinemeta.strem.io/catalog/series/top/genre=Drama.json',
-    'https://v3-cinemeta.strem.io/catalog/series/top/genre=Action.json',
-    'https://v3-cinemeta.strem.io/catalog/series/top/genre=Comedy.json',
+  return items
+}
+
+/**
+ * Fetches latest movie and TV show releases directly from https://psa.wf/feed/
+ */
+export async function fetchLatestReleases(): Promise<MovieSummary[]> {
+  if (cachedPsaReleases && cachedPsaReleases.length > 0) {
+    return cachedPsaReleases
+  }
+
+  const endpoints = [
+    '/api/psa-feed/feed/',
+    'https://psa.wf/feed/',
+    `https://corsproxy.io/?${encodeURIComponent('https://psa.wf/feed/')}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://psa.wf/feed/')}`,
   ]
 
-  const rawMetas: any[] = []
-  const seenIds = new Set<string>()
+  let psaItems: { title: string; pureTitle: string; year: string; type: 'movie' | 'series'; poster: string; link: string }[] = []
 
-  await Promise.all(
-    catalogUrls.map(async (url) => {
-      try {
-        const res = await fetch(url)
-        if (res.ok) {
-          const data = await res.json()
-          if (Array.isArray(data.metas)) {
-            for (const m of data.metas) {
-              if (m.imdb_id && !seenIds.has(m.imdb_id) && m.name) {
-                seenIds.add(m.imdb_id)
-                rawMetas.push(m)
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          Accept: 'application/rss+xml, application/xml, text/xml, */*',
+        },
+      })
+
+      if (res.ok) {
+        const text = await res.text()
+        if (text && text.includes('<rss') && text.includes('<item>')) {
+          psaItems = parsePsaFeedXml(text)
+          if (psaItems.length > 0) {
+            break
+          }
+        }
+      }
+    } catch {
+      // Try next fallback endpoint
+    }
+  }
+
+  if (psaItems.length > 0) {
+    // Resolve each item with its OMDb IMDb ID in parallel (with timeout protection)
+    const enrichedList: MovieSummary[] = await Promise.all(
+      psaItems.map(async (item) => {
+        try {
+          const key = getNextKey()
+          let omdbUrl = `https://www.omdbapi.com/?t=${encodeURIComponent(item.pureTitle)}&apikey=${key}`
+          if (item.year && item.type === 'movie') {
+            omdbUrl += `&y=${encodeURIComponent(item.year)}`
+          }
+
+          const res = await fetch(omdbUrl)
+          if (res.ok) {
+            const data = await res.json()
+            if (data.Response === 'True' && data.imdbID) {
+              return {
+                imdbID: data.imdbID,
+                Title: data.Title || item.pureTitle,
+                Year: data.Year || item.year,
+                Type: data.Type === 'series' ? 'series' : item.type,
+                Poster: item.poster || (data.Poster && data.Poster !== 'N/A' ? data.Poster : ''),
               }
             }
           }
+        } catch {
+          // If individual OMDb query fails, fall back to title-based search ID
         }
-      } catch {
-        // Continue to other endpoints
-      }
-    })
-  )
 
-  // Filter for releases in current year or recent 2 years
-  const minYear = currentYear - 2
-  const filtered = rawMetas.filter((m) => {
-    const rawYear = (m.year || m.releaseInfo || '').toString()
-    const yearMatch = rawYear.match(/\b(19|20)\d{2}\b/)
-    const parsedYear = yearMatch ? parseInt(yearMatch[0], 10) : 0
-    return parsedYear >= minYear
-  })
+        // Fallback: search OMDb with simple query
+        try {
+          const searchResult = await searchMovies(item.pureTitle, { type: item.type })
+          if (searchResult.movies.length > 0) {
+            const match = searchResult.movies[0]
+            return {
+              imdbID: match.imdbID,
+              Title: match.Title,
+              Year: match.Year,
+              Type: match.Type,
+              Poster: item.poster || match.Poster,
+            }
+          }
+        } catch {
+          // Continue
+        }
 
-  // Sort by highest IMDb rating descending, then popularity
-  filtered.sort((a, b) => {
-    const rA = parseFloat(a.imdbRating) || 0
-    const rB = parseFloat(b.imdbRating) || 0
-    if (rB !== rA) return rB - rA
-    return (b.popularity || 0) - (a.popularity || 0)
-  })
+        // Final fallback summary
+        return {
+          imdbID: `psa-${item.pureTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+          Title: item.pureTitle,
+          Year: item.year,
+          Type: item.type,
+          Poster: item.poster,
+        }
+      })
+    )
 
-  const results: MovieSummary[] = filtered.map((m) => {
-    const rawYear = (m.year || m.releaseInfo || `${currentYear}`).toString()
-    const yearMatch = rawYear.match(/\b(19|20)\d{2}\b/)
-    const year = yearMatch ? yearMatch[0] : (m.releaseInfo || `${currentYear}`)
-    const poster = m.poster || `https://images.metahub.space/poster/medium/${m.imdb_id}/img`
-
-    return {
-      imdbID: m.imdb_id,
-      Title: m.name,
-      Year: year,
-      Type: m.type === 'series' ? 'series' : 'movie',
-      Poster: poster,
-    }
-  })
-
-  if (results.length > 0) {
-    cachedLatestReleases = results
-    return results
+    cachedPsaReleases = enrichedList
+    return enrichedList
   }
 
   return []
