@@ -148,6 +148,11 @@ export default function App() {
     const details = await getMovieDetails(id)
     if (details) {
       setSelectedMovieDetails(details)
+      if (details.imdbID && details.imdbID.startsWith('tt') && id !== details.imdbID) {
+        setSelectedMovieId(details.imdbID)
+        const newPath = `/movie/${encodeURIComponent(details.imdbID)}`
+        window.history.replaceState({ movieId: details.imdbID }, '', newPath)
+      }
     } else {
       setSelectedMovieDetails({
         imdbID: id,
