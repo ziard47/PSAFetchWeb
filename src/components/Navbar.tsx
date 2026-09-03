@@ -9,6 +9,8 @@ interface NavbarProps {
   onQuickSearch?: (term: string) => void
   onSelectType?: (type: string) => void
   activeType?: string
+  isDarkMode?: boolean
+  onToggleDarkMode?: () => void
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -19,6 +21,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onQuickSearch,
   onSelectType,
   activeType = '',
+  isDarkMode = false,
+  onToggleDarkMode,
 }) => {
   const [headerSearchQuery, setHeaderSearchQuery] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -128,6 +132,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </form>
 
+              {/* Dark Mode Toggle Button */}
+              <button
+                type="button"
+                onClick={onToggleDarkMode}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer active:scale-95"
+                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                aria-label="Toggle dark mode"
+              >
+                <i className={`fas ${isDarkMode ? 'fa-sun text-amber-400' : 'fa-moon text-slate-600'} text-xs sm:text-sm`}></i>
+              </button>
+
               {/* Mobile Search Toggle Button */}
               <button
                 type="button"
@@ -135,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setIsMobileSearchOpen(!isMobileSearchOpen)
                   if (isMobileMenuOpen) setIsMobileMenuOpen(false)
                 }}
-                className="md:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs"
+                className="md:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer"
                 title="Search"
                 aria-label="Toggle search bar"
               >
@@ -149,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onOpenWatchlist()
                   setIsMobileMenuOpen(false)
                 }}
-                className="header-watchlist-btn"
+                className="header-watchlist-btn cursor-pointer"
                 title="View Watchlist"
               >
                 <i className="fas fa-bookmark text-xs sm:text-sm"></i>
@@ -164,7 +179,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setIsMobileMenuOpen(!isMobileMenuOpen)
                   if (isMobileSearchOpen) setIsMobileSearchOpen(false)
                 }}
-                className="md:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs"
+                className="md:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer"
                 title="Menu"
                 aria-label="Toggle navigation menu"
               >
@@ -287,12 +302,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </div>
 
-              {/* Watchlist Shortcut */}
-              <div className="pt-1">
+              {/* Watchlist Shortcut & Theme Mode Toggle */}
+              <div className="pt-1 space-y-2">
                 <button
                   type="button"
                   onClick={() => handleNavClick(onOpenWatchlist)}
-                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-teal-50/60 border border-teal-200/80 text-teal-900 text-xs font-bold"
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-teal-50/60 border border-teal-200/80 text-teal-900 text-xs font-bold cursor-pointer"
                   style={{ fontFamily: 'var(--heading-font)' }}
                 >
                   <div className="flex items-center gap-2">
@@ -301,6 +316,23 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                   <span className="bg-[#58BCB3] text-white px-2 py-0.5 rounded-md text-[11px]">
                     {watchlistCount} {watchlistCount === 1 ? 'item' : 'items'}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onToggleDarkMode?.()
+                  }}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold cursor-pointer"
+                  style={{ fontFamily: 'var(--heading-font)' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <i className={`fas ${isDarkMode ? 'fa-sun text-amber-400' : 'fa-moon text-slate-600'} text-xs`}></i>
+                    <span>Theme Appearance</span>
+                  </div>
+                  <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">
+                    {isDarkMode ? 'Dark Mode' : 'Light Mode'}
                   </span>
                 </button>
               </div>

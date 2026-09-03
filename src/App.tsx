@@ -21,8 +21,10 @@ import {
   getSearchCollectionTitle,
 } from './services/movieApi'
 import { MovieDetails, MovieSummary, SearchFilters, WatchlistItem } from './types/movie'
+import { enable as enableDarkReader, disable as disableDarkReader, setFetchMethod } from 'darkreader'
 
 const WATCHLIST_STORAGE_KEY = 'psa_fetch_watchlist_v1'
+const THEME_MODE_STORAGE_KEY = 'psa_fetch_theme_mode_v1'
 
 function extractMovieIdFromUrl(): string | null {
   try {
@@ -93,6 +95,41 @@ export default function App() {
     }
   })
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false)
+
+  // Dark Mode State powered by DarkReader
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(THEME_MODE_STORAGE_KEY)
+      if (saved) return saved === 'dark'
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    } catch {
+      return false
+    }
+  })
+
+  // Synchronize DarkReader with isDarkMode
+  useEffect(() => {
+    try {
+      setFetchMethod(window.fetch)
+      if (isDarkMode) {
+        enableDarkReader({
+          brightness: 100,
+          contrast: 95,
+          sepia: 0,
+        })
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'dark')
+      } else {
+        disableDarkReader()
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'light')
+      }
+    } catch (e) {
+      console.error('Failed to toggle DarkReader', e)
+    }
+  }, [isDarkMode])
+
+  const handleToggleDarkMode = () => {
+    setIsDarkMode((prev) => !prev)
+  }
 
   // Load movie by ID helper (used for direct URL navigation)
   const loadMovieById = useCallback(async (id: string, updateHistory = false) => {
@@ -353,6 +390,8 @@ export default function App() {
           onQuickSearch={handleQuickSearch}
           onSelectType={(type) => setFilters((prev) => ({ ...prev, type: type as any, page: 1 }))}
           activeType={filters.type}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={handleToggleDarkMode}
         />
 
         {/* Main Body Container */}

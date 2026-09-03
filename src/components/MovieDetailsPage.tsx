@@ -6,8 +6,6 @@ import {
   Tabs,
   Tab,
   CircularProgress,
-  Snackbar,
-  Alert,
   Dialog,
   DialogContent,
 } from '@mui/material'
@@ -19,6 +17,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import { MovieDetails, MovieSummary, SeasonData, EpisodeSummary } from '../types/movie'
 import { getSeasonEpisodes, getMovieDetails } from '../services/movieApi'
 import { PsaDownloadsSection } from './PsaDownloadsSection'
+import { ShareModal } from './ShareModal'
 
 interface MovieDetailsPageProps {
   movie: MovieDetails | null
@@ -35,9 +34,8 @@ export const MovieDetailsPage: React.FC<MovieDetailsPageProps> = ({
   isBookmarked,
   onToggleBookmark,
 }) => {
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
   const [posterError, setPosterError] = useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
   // Reset poster error when movie changes
   useEffect(() => {
@@ -117,13 +115,7 @@ export const MovieDetailsPage: React.FC<MovieDetailsPageProps> = ({
 
   const handleShare = () => {
     if (!movie) return
-    const currentUrl = window.location.href
-    const text = `Check out ${movie.Title} (${movie.Year}) on PSA Fetch!\n${currentUrl}`
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text)
-      setSnackbarMessage('Link and details copied to clipboard!')
-      setSnackbarOpen(true)
-    }
+    setIsShareModalOpen(true)
   }
 
   if (loading) {
@@ -760,24 +752,12 @@ export const MovieDetailsPage: React.FC<MovieDetailsPageProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Snackbar Notification */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          severity="success"
-          sx={{
-            bgcolor: '#1a202c',
-            color: '#ffffff',
-            border: '1px solid #58BCB3',
-          }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      {/* Share Modal Dialog */}
+      <ShareModal
+        open={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        movie={movie}
+      />
     </div>
   )
 }
