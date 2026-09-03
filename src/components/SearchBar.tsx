@@ -1,224 +1,63 @@
 import React from 'react'
-import {
-  Paper,
-  InputBase,
-  IconButton,
-  Box,
-  ToggleButtonGroup,
-  ToggleButton,
-  CircularProgress,
-  Chip,
-  Tooltip,
-} from '@mui/material'
-import SearchIcon from '@mui/icons-material/Search'
-import ClearIcon from '@mui/icons-material/Clear'
-import MovieIcon from '@mui/icons-material/Movie'
-import TvIcon from '@mui/icons-material/Tv'
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import { SearchFilters } from '../types/movie'
 
 interface SearchBarProps {
   query: string
   onQueryChange: (q: string) => void
-  filters: SearchFilters
-  onFiltersChange: (f: SearchFilters) => void
+  filters?: SearchFilters
+  onFiltersChange?: (f: SearchFilters) => void
   isLoading: boolean
   onQuickSearch: (term: string) => void
 }
 
-const QUICK_TAGS = ['Inception', 'Dune', 'Oppenheimer', 'Interstellar', 'Batman', 'Spider-Man', 'Matrix', 'Avatar']
-
 export const SearchBar: React.FC<SearchBarProps> = ({
   query,
   onQueryChange,
-  filters,
-  onFiltersChange,
   isLoading,
   onQuickSearch,
 }) => {
-  const handleTypeChange = (_: React.MouseEvent<HTMLElement>, newType: string | null) => {
-    onFiltersChange({
-      ...filters,
-      type: (newType ?? '') as SearchFilters['type'],
-      page: 1,
-    })
-  }
-
   return (
-    <Box sx={{ width: '100%', maxWidth: '900px', mx: 'auto', mb: 4 }}>
-      {/* Main Glass Search Input */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: '4px 12px',
-          display: 'flex',
-          alignItems: 'center',
-          borderRadius: '24px',
-          background: 'rgba(8, 30, 24, 0.75)',
-          backdropFilter: 'blur(24px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-          border: '1.5px solid rgba(52, 211, 153, 0.35)',
-          boxShadow: '0 12px 40px rgba(0, 0, 0, 0.45), 0 0 25px rgba(16, 185, 129, 0.25)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:focus-within': {
-            borderColor: '#34d399',
-            boxShadow: '0 16px 48px rgba(0, 0, 0, 0.6), 0 0 35px rgba(16, 185, 129, 0.45)',
-            transform: 'translateY(-2px)',
-          },
-        }}
-      >
-        <Box sx={{ p: 1, display: 'flex', alignItems: 'center', color: '#34d399' }}>
+    <div className="w-full max-w-4xl mx-auto mb-4 sm:mb-6">
+      {/* Theme Search Input Bar */}
+      <div className="bg-white rounded-2xl p-1.5 sm:p-2.5 border-2 border-[#58BCB3] shadow-md sm:shadow-lg shadow-teal-900/5 flex items-center gap-2 sm:gap-3 transition-all focus-within:ring-4 focus-within:ring-teal-100">
+        <div className="pl-2.5 sm:pl-3 text-[#58BCB3] flex items-center shrink-0">
           {isLoading ? (
-            <CircularProgress size={24} sx={{ color: '#34d399' }} />
+            <i className="fas fa-circle-notch fa-spin text-lg sm:text-xl"></i>
           ) : (
-            <SearchIcon sx={{ fontSize: 28 }} />
+            <i className="fas fa-search text-base sm:text-xl"></i>
           )}
-        </Box>
+        </div>
 
-        <InputBase
+        <input
+          type="text"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Search movies, TV shows, franchises, directors..."
-          sx={{
-            ml: 1,
-            flex: 1,
-            color: '#f0fdf4',
-            fontSize: { xs: '1rem', md: '1.18rem' },
-            fontWeight: 500,
-            '& input::placeholder': {
-              color: 'rgba(167, 243, 208, 0.6)',
-              opacity: 1,
-            },
-          }}
+          placeholder="Search movies, TV series"
+          className="flex-1 bg-transparent border-none outline-none text-slate-800 placeholder:text-slate-400 text-sm sm:text-base md:text-lg font-normal py-1 min-w-0"
+          style={{ fontFamily: 'var(--body-font)' }}
         />
 
         {query && (
-          <Tooltip title="Clear search">
-            <IconButton
-              onClick={() => onQueryChange('')}
-              size="small"
-              sx={{
-                color: '#6ee7b7',
-                '&:hover': { color: '#ffffff', bgcolor: 'rgba(16, 185, 129, 0.2)' },
-              }}
-            >
-              <ClearIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <button
+            type="button"
+            onClick={() => onQueryChange('')}
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition shrink-0"
+            title="Clear search"
+          >
+            <i className="fas fa-times text-xs sm:text-sm"></i>
+          </button>
         )}
-      </Paper>
 
-      {/* Filter Options: Type Selectors */}
-      <Box
-        sx={{
-          mt: 2.5,
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 2,
-        }}
-      >
-        {/* Type Toggle Buttons */}
-        <ToggleButtonGroup
-          value={filters.type}
-          exclusive
-          onChange={handleTypeChange}
-          size="small"
-          sx={{
-            background: 'rgba(8, 25, 20, 0.65)',
-            backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(52, 211, 153, 0.25)',
-            borderRadius: '16px',
-            p: '3px',
-            '& .MuiToggleButton-root': {
-              color: '#a7f3d0',
-              border: 'none',
-              borderRadius: '12px !important',
-              px: { xs: 1.5, sm: 2.5 },
-              py: { xs: 0.5, sm: 0.7 },
-              fontSize: { xs: '0.8rem', sm: '0.88rem' },
-              fontWeight: 600,
-              textTransform: 'none',
-              gap: { xs: 0.5, sm: 0.8 },
-              transition: 'all 0.2s ease',
-              '&.Mui-selected': {
-                bgcolor: 'rgba(16, 185, 129, 0.3)',
-                color: '#ffffff',
-                border: '1px solid rgba(52, 211, 153, 0.5)',
-                boxShadow: '0 0 14px rgba(16, 185, 129, 0.35)',
-              },
-              '&:hover': {
-                bgcolor: 'rgba(16, 185, 129, 0.15)',
-                color: '#ffffff',
-              },
-            },
-          }}
+        <button
+          type="button"
+          onClick={() => query && onQuickSearch(query)}
+          className="bg-[#58BCB3] hover:bg-[#439d95] text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-base transition tracking-wide flex items-center gap-1.5 sm:gap-2 shrink-0 shadow-2xs active:scale-95"
+          style={{ fontFamily: 'var(--heading-font)' }}
         >
-          <ToggleButton value="">
-            <AutoAwesomeIcon sx={{ fontSize: { xs: 15, sm: 17 } }} />
-            All
-          </ToggleButton>
-          <ToggleButton value="movie">
-            <MovieIcon sx={{ fontSize: { xs: 15, sm: 17 } }} />
-            Movies
-          </ToggleButton>
-          <ToggleButton value="series">
-            <TvIcon sx={{ fontSize: { xs: 15, sm: 17 } }} />
-            Series
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
-
-      {/* Quick Search Suggestions */}
-      <Box
-        sx={{
-          mt: 2,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          flexWrap: 'wrap',
-        }}
-      >
-        <Box
-          component="span"
-          sx={{
-            fontSize: '0.75rem',
-            color: '#6ee7b7',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            mr: 0.5,
-          }}
-        >
-          Trending:
-        </Box>
-        {QUICK_TAGS.map((tag) => (
-          <Chip
-            key={tag}
-            label={tag}
-            size="small"
-            onClick={() => onQuickSearch(tag)}
-            clickable
-            sx={{
-              background: 'rgba(6, 25, 20, 0.65)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(52, 211, 153, 0.25)',
-              color: '#d1fae5',
-              fontSize: '0.78rem',
-              fontWeight: 500,
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                background: 'rgba(16, 185, 129, 0.25)',
-                borderColor: '#34d399',
-                color: '#ffffff',
-                boxShadow: '0 0 12px rgba(16, 185, 129, 0.3)',
-                transform: 'translateY(-1px)',
-              },
-            }}
-          />
-        ))}
-      </Box>
-    </Box>
+          <span>SEARCH</span>
+          <i className="fas fa-arrow-right text-[10px] sm:text-xs"></i>
+        </button>
+      </div>
+    </div>
   )
 }

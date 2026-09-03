@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, CircularProgress } from "@mui/material";
-import WhatshotIcon from "@mui/icons-material/Whatshot";
 import { MovieCard } from "./MovieCard";
 import { MovieSummary } from "../types/movie";
 import { fetchLatestReleases } from "../services/movieApi";
@@ -10,6 +8,7 @@ interface LatestReleasesGridProps {
   onSelectMovie: (summary: MovieSummary) => void;
   isBookmarked: (id: string) => boolean;
   onToggleBookmark: (e: React.MouseEvent, movie: MovieSummary) => void;
+  onFeaturedMovieLoaded?: (movie: MovieSummary) => void;
 }
 
 export const LatestReleasesGrid: React.FC<LatestReleasesGridProps> = ({
@@ -17,6 +16,7 @@ export const LatestReleasesGrid: React.FC<LatestReleasesGridProps> = ({
   onSelectMovie,
   isBookmarked,
   onToggleBookmark,
+  onFeaturedMovieLoaded,
 }) => {
   const [releases, setReleases] = useState<MovieSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +28,9 @@ export const LatestReleasesGrid: React.FC<LatestReleasesGridProps> = ({
       const data = await fetchLatestReleases();
       if (isMounted) {
         setReleases(data);
+        if (data.length > 0 && onFeaturedMovieLoaded) {
+          onFeaturedMovieLoaded(data[0]);
+        }
         setLoading(false);
       }
     };
@@ -47,84 +50,49 @@ export const LatestReleasesGrid: React.FC<LatestReleasesGridProps> = ({
 
   const sectionTitle =
     filterType === "movie"
-      ? `Latest PSA Movie Releases`
+      ? "Featured Movie Releases"
       : filterType === "series"
-        ? `Latest PSA TV Series Releases`
-        : `Latest PSA Releases`;
+        ? "Featured Television Releases"
+        : "Latest PSA Media Releases";
 
   const sectionSubtitle =
     filterType === "movie"
-      ? `Latest movie encodes fetched live from official PSA feed (psa.wf)`
+      ? "Curated movie encodes fetched live from official PSA feed (psa.wf)"
       : filterType === "series"
-        ? `Latest TV show and series encodes fetched live from official PSA feed (psa.wf)`
-        : `Real-time movie and television encodes fetched live from official PSA feed (psa.wf)`;
+        ? "Curated television and series encodes fetched live from official PSA feed (psa.wf)"
+        : "Real-time high-efficiency releases indexed live from official PSA feed (psa.wf)";
 
   return (
-    <Box sx={{ mt: 3 }}>
+    <div className="mt-2 sm:mt-4">
       {/* Section Header */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 3,
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Box
-            sx={{
-              p: 1,
-              borderRadius: "12px",
-              bgcolor: "rgba(16, 185, 129, 0.2)",
-              border: "1px solid rgba(52, 211, 153, 0.35)",
-              color: "#34d399",
-              display: "flex",
-            }}
-          >
-            <WhatshotIcon />
-          </Box>
-          <Box>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 800,
-                color: "#ecfdf5",
-                letterSpacing: "-0.02em",
-              }}
-            >
+      <div className="flex items-center justify-between mb-4 sm:mb-6 pb-2.5 sm:pb-3 border-b border-slate-200">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-teal-50 border border-teal-200 text-[#58BCB3] flex items-center justify-center shadow-xs shrink-0">
+            <i className="fas fa-fire-alt text-sm sm:text-lg"></i>
+          </div>
+          <div>
+            <h2 className="text-lg sm:text-2xl font-normal tracking-wide text-slate-800 m-0 leading-tight" style={{ fontFamily: 'var(--heading-font)' }}>
               {sectionTitle}
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ color: "#6ee7b7", opacity: 0.85 }}
-            >
+            </h2>
+            <p className="text-[11px] sm:text-sm text-slate-500 m-0" style={{ fontFamily: 'var(--body-font)' }}>
               {sectionSubtitle}
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Loading State */}
       {loading ? (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            py: 8,
-            gap: 2,
-          }}
-        >
-          <CircularProgress size={36} sx={{ color: "#34d399" }} />
-          <Typography variant="body2" sx={{ color: "#a7f3d0", opacity: 0.8 }}>
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <i className="fas fa-circle-notch fa-spin text-3xl text-[#58BCB3]"></i>
+          <p className="text-sm text-slate-500">
             Fetching latest releases from official PSA feed (psa.wf)...
-          </Typography>
-        </Box>
+          </p>
+        </div>
       ) : (
-        /* Latest Dynamic Releases Grid */
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-          {filteredReleases.slice(0, 20).map((movie) => (
+        /* Latest Releases Grid */
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {filteredReleases.slice(0, 18).map((movie) => (
             <MovieCard
               key={movie.imdbID}
               movie={movie}
@@ -135,6 +103,6 @@ export const LatestReleasesGrid: React.FC<LatestReleasesGridProps> = ({
           ))}
         </div>
       )}
-    </Box>
+    </div>
   );
 };
