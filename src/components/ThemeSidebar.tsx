@@ -50,29 +50,26 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
       <div className="widget widget_categories">
         <h2 className="widget-title">
           <i className="fas fa-filter text-[#58BCB3] text-sm"></i>
-          <span>Filter Format</span>
+          <span>Filter</span>
         </h2>
         <div className="filter-type-list">
           <div
             className={`filter-type-item ${filters.type === '' ? 'active' : ''}`}
             onClick={() => handleTypeSelect('')}
           >
-            <span>All Formats</span>
-            <span className="item-count">All</span>
+            <span>All</span>
           </div>
           <div
             className={`filter-type-item ${filters.type === 'movie' ? 'active' : ''}`}
             onClick={() => handleTypeSelect('movie')}
           >
-            <span>Feature Films</span>
-            <span className="item-count">Movies</span>
+            <span>Movies</span>
           </div>
           <div
             className={`filter-type-item ${filters.type === 'series' ? 'active' : ''}`}
             onClick={() => handleTypeSelect('series')}
           >
-            <span>Television Series</span>
-            <span className="item-count">TV Shows</span>
+            <span>TV Shows</span>
           </div>
         </div>
       </div>

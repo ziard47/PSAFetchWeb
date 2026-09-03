@@ -102,18 +102,12 @@ export const ThemeFooter: React.FC<ThemeFooterProps> = ({
         <div className="artblog-container">
           <div className="flex-row">
             <div className="site-info">
-              <span>© {new Date().getFullYear()} PSA Fetch. Powered by Art Blog Theme Template.</span>
+              <span>© {new Date().getFullYear()} PSA Fetch. Designed and Developed by Mohomed Ziard | Voltrex Digital</span>
             </div>
 
             <div className="social-links">
-              <a href="https://github.com" target="_blank" rel="noreferrer" title="GitHub">
+              <a href="https://github.com/ziard47" target="_blank" rel="noreferrer" title="GitHub">
                 <i className="fab fa-github"></i>
-              </a>
-              <a href="https://twitter.com" target="_blank" rel="noreferrer" title="Twitter">
-                <i className="fab fa-twitter"></i>
-              </a>
-              <a href="https://t.me" target="_blank" rel="noreferrer" title="Telegram">
-                <i className="fab fa-telegram"></i>
               </a>
               <button
                 type="button"

@@ -13,7 +13,6 @@ import {
 import DownloadIcon from '@mui/icons-material/Download'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import StorageIcon from '@mui/icons-material/Storage'
-import FlashOnIcon from '@mui/icons-material/FlashOn'
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'
 import { PsaDownloadItem } from '../types/movie'
 import { fetchPsaDownloads, fetchPsaEpisodeDownloads } from '../services/psaDownloads'
@@ -126,17 +125,9 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
                   letterSpacing: '0.02em',
                 }}
               >
-                {isEpisode ? 'EPISODE DOWNLOADS' : 'VERIFIED PSA DOWNLOADS'}
+                {isEpisode ? 'EPISODE DOWNLOADS' : 'MOVIE DOWNLOADS'}
               </Typography>
-              <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold bg-teal-50 border border-teal-200 text-teal-800 shadow-xs flex items-center gap-1">
-                <FlashOnIcon sx={{ fontSize: 11, color: '#58BCB3' }} /> HEVC x265
-              </span>
             </Box>
-            <Typography variant="caption" sx={{ color: '#64748b', fontSize: { xs: '0.75rem', sm: '0.82rem' }, display: 'block' }}>
-              {isEpisode
-                ? 'High-efficiency x265 episode encodes (720p / 1080p / 2160p)'
-                : 'High-efficiency x265 movie releases with multi-channel audio & HDR'}
-            </Typography>
           </Box>
         </Box>
 
