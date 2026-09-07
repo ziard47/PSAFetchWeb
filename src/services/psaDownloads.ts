@@ -58,8 +58,11 @@ function matchesMovieTitle(torrentTitle: string, targetTitle: string, targetYear
     }
   }
 
-  // Clean prefix from uploader headers
-  prefix = prefix.replace(/^www\.[^\s]+\s*-\s*/i, '')
+  // Clean prefix from uploader headers / brackets (e.g. [YTS.MX], [TGx], www.site.com - )
+  prefix = prefix
+    .replace(/^\[[^\]]+\]\s*/i, '')
+    .replace(/^\([^\)]+\)\s*/i, '')
+    .replace(/^www\.[^\s]+\s*-\s*/i, '')
   const normPrefix = normalizeTitle(prefix)
   const normPrefixNoThe = normPrefix.replace(/^the\s+/i, '')
 
@@ -97,6 +100,10 @@ function matchesShowTitle(torrentTitle: string, targetShow: string, epCode: stri
 
   // Remove release year (e.g. 2019, 2020) and non-alphanumeric chars
   prefix = prefix.replace(/\b(19|20)\d{2}\b/g, '')
+  prefix = prefix
+    .replace(/^\[[^\]]+\]\s*/i, '')
+    .replace(/^\([^\)]+\)\s*/i, '')
+    .replace(/^www\.[^\s]+\s*-\s*/i, '')
   const normPrefix = normalizeTitle(prefix)
   const normPrefixNoThe = normPrefix.replace(/^the\s+/i, '')
 
@@ -116,7 +123,7 @@ function matchesShowTitle(torrentTitle: string, targetShow: string, epCode: stri
   return false
 }
 
-function parseRssXml(xmlText: string): PsaDownloadItem[] {
+function parseRssXml(xmlText: string, requirePsa = true): PsaDownloadItem[] {
   const items: PsaDownloadItem[] = []
   const itemMatches = xmlText.match(/<item>[\s\S]*?<\/item>/gi) || []
 
@@ -131,45 +138,58 @@ function parseRssXml(xmlText: string): PsaDownloadItem[] {
     const rawDesc = descMatch ? descMatch[1].replace(/<\/?!\[CDATA\[|\]\]>/g, '').trim() : ''
     const pubDate = pubDateMatch ? pubDateMatch[1].trim() : undefined
 
-    // Exclude if description contains "Application" keyword or title is an .exe file
-    if (/application/i.test(rawDesc) || /\.exe$/i.test(rawTitle) || /downloader\.exe/i.test(rawTitle) || /\.dmg$/i.test(rawTitle)) {
+    // Exclude if description contains "Application" keyword or title is an .exe / installer file
+    if (
+      /application/i.test(rawDesc) ||
+      /\.(exe|dmg|apk|iso|msi|bat|sh)$/i.test(rawTitle) ||
+      /downloader\.exe/i.test(rawTitle)
+    ) {
       continue
     }
 
-    // Only include items with HEVC-PSA in title and valid magnet link
-    if (/hevc-psa/i.test(rawTitle) && rawLink.startsWith('magnet:')) {
-      const sizeMatch = rawDesc.match(/(\d+(?:\.\d+)?\s*(?:GB|MB|KB|GiB|MiB))/i)
-      const resMatch = rawTitle.match(/(2160p|1080p|720p|480p|4K|UHD)/i)
-
-      let resolution = 'HD'
-      if (resMatch) {
-        resolution = resMatch[1].toUpperCase() === '4K' || resMatch[1].toUpperCase() === 'UHD' ? '2160p' : resMatch[1]
-      }
-
-      // Extract codec / audio badges (e.g. 10bit, BluRay, HDR10+, DV, 8CH, 6CH)
-      const codecTags: string[] = []
-      if (/2160p|4k/i.test(rawTitle)) codecTags.push('4K UHD')
-      if (/1080p/i.test(rawTitle)) codecTags.push('1080p')
-      if (/720p/i.test(rawTitle)) codecTags.push('720p')
-      if (/hdr10plus|hdr10\+/i.test(rawTitle)) codecTags.push('HDR10+')
-      if (/\bdv\b|dolby.?vision/i.test(rawTitle)) codecTags.push('Dolby Vision')
-      if (/10bit/i.test(rawTitle)) codecTags.push('10bit')
-      if (/bluray|blu-ray/i.test(rawTitle)) codecTags.push('BluRay')
-      if (/web-dl|webrip/i.test(rawTitle)) codecTags.push('WEBRip')
-      if (/8ch|ddp5\.1|5\.1|7\.1/i.test(rawTitle)) {
-        const audioMatch = rawTitle.match(/(8CH|6CH|DDP5\.1|5\.1|7\.1)/i)
-        if (audioMatch) codecTags.push(audioMatch[1].toUpperCase())
-      }
-
-      items.push({
-        title: rawTitle,
-        magnet: rawLink,
-        size: sizeMatch ? sizeMatch[1] : 'N/A',
-        resolution,
-        codecInfo: codecTags.join(' • '),
-        pubDate,
-      })
+    // Must be a valid magnet link
+    if (!rawLink.startsWith('magnet:')) {
+      continue
     }
+
+    // If PSA required, ensure HEVC-PSA / PSA is in the title
+    if (requirePsa && !/hevc-psa|\bpsa\b/i.test(rawTitle)) {
+      continue
+    }
+
+    const sizeMatch = rawDesc.match(/(\d+(?:\.\d+)?\s*(?:GB|MB|KB|GiB|MiB))/i)
+    const resMatch = rawTitle.match(/\b(2160p|1080p|720p|480p|4k|uhd)\b/i) || rawTitle.match(/(2160p|1080p|720p|480p|4K|UHD)/i)
+
+    let resolution = 'HD'
+    if (resMatch) {
+      resolution = resMatch[1].toUpperCase() === '4K' || resMatch[1].toUpperCase() === 'UHD' ? '2160p' : resMatch[1]
+    }
+
+    // Extract codec / audio badges (e.g. 10bit, BluRay, HDR10+, DV, 8CH, 6CH, x265, x264)
+    const codecTags: string[] = []
+    if (/2160p|4k/i.test(rawTitle)) codecTags.push('4K UHD')
+    if (/1080p/i.test(rawTitle)) codecTags.push('1080p')
+    if (/720p/i.test(rawTitle)) codecTags.push('720p')
+    if (/hdr10plus|hdr10\+/i.test(rawTitle)) codecTags.push('HDR10+')
+    if (/\bdv\b|dolby.?vision/i.test(rawTitle)) codecTags.push('Dolby Vision')
+    if (/10bit/i.test(rawTitle)) codecTags.push('10bit')
+    if (/x265|hevc/i.test(rawTitle)) codecTags.push('x265')
+    else if (/x264|h\.?264/i.test(rawTitle)) codecTags.push('x264')
+    if (/bluray|blu-ray/i.test(rawTitle)) codecTags.push('BluRay')
+    if (/web-dl|webrip/i.test(rawTitle)) codecTags.push('WEBRip')
+    if (/8ch|ddp5\.1|5\.1|7\.1/i.test(rawTitle)) {
+      const audioMatch = rawTitle.match(/(8CH|6CH|DDP5\.1|5\.1|7\.1)/i)
+      if (audioMatch) codecTags.push(audioMatch[1].toUpperCase())
+    }
+
+    items.push({
+      title: rawTitle,
+      magnet: rawLink,
+      size: sizeMatch ? sizeMatch[1] : 'N/A',
+      resolution,
+      codecInfo: codecTags.join(' • '),
+      pubDate,
+    })
   }
 
   // Sort: 2160p first, then 1080p, then 720p, etc.
@@ -183,19 +203,19 @@ function parseRssXml(xmlText: string): PsaDownloadItem[] {
   return items
 }
 
-const downloadsCache = new Map<string, PsaDownloadItem[]>()
+const rawXmlCache = new Map<string, string>()
 
-async function executeRssQuery(searchQuery: string): Promise<PsaDownloadItem[]> {
-  const cacheKey = `downloads:${searchQuery.toLowerCase()}`
+async function fetchRssXml(searchQuery: string): Promise<string> {
+  const cacheKey = searchQuery.toLowerCase().trim()
 
-  if (downloadsCache.has(cacheKey)) {
-    return downloadsCache.get(cacheKey)!
+  if (rawXmlCache.has(cacheKey)) {
+    return rawXmlCache.get(cacheKey)!
   }
 
   const encoded = encodeURIComponent(searchQuery)
   const targetUrl = `https://bt4gprx.com/search?q=${encoded}&page=rss`
 
-  // 1. Primary: Vite dev server proxy
+  // 1. Primary: Vite dev server proxy / Cloudflare Pages Functions proxy
   try {
     const localProxyUrl = `/api/bt4g/search?q=${encoded}&page=rss`
     const res = await fetch(localProxyUrl, {
@@ -207,9 +227,8 @@ async function executeRssQuery(searchQuery: string): Promise<PsaDownloadItem[]> 
     if (res.ok) {
       const text = await res.text()
       if (text && text.includes('<rss')) {
-        const parsed = parseRssXml(text)
-        downloadsCache.set(cacheKey, parsed)
-        return parsed
+        rawXmlCache.set(cacheKey, text)
+        return text
       }
     }
   } catch {
@@ -223,17 +242,33 @@ async function executeRssQuery(searchQuery: string): Promise<PsaDownloadItem[]> 
     if (res.ok) {
       const text = await res.text()
       if (text && text.includes('<rss')) {
-        const parsed = parseRssXml(text)
-        downloadsCache.set(cacheKey, parsed)
-        return parsed
+        rawXmlCache.set(cacheKey, text)
+        return text
       }
     }
   } catch {
     // Fallback failed
   }
 
-  downloadsCache.set(cacheKey, [])
-  return []
+  rawXmlCache.set(cacheKey, '')
+  return ''
+}
+
+async function executeRssQuery(searchQuery: string, requirePsa = true): Promise<PsaDownloadItem[]> {
+  const xml = await fetchRssXml(searchQuery)
+  if (!xml) return []
+  return parseRssXml(xml, requirePsa)
+}
+
+/**
+ * Filter and extract only 1080p and 720p releases, returning up to top 10 results
+ */
+function filterTop1080And720(items: PsaDownloadItem[], limit = 10): PsaDownloadItem[] {
+  const filtered = items.filter((item) => {
+    const res = item.resolution.toLowerCase()
+    return res === '1080p' || res === '720p'
+  })
+  return filtered.slice(0, limit)
 }
 
 export async function fetchPsaDownloads(movieTitle: string, movieYear?: string): Promise<PsaDownloadItem[]> {
@@ -266,25 +301,56 @@ export async function fetchPsaDownloads(movieTitle: string, movieYear?: string):
 
   const uniqueVariants = Array.from(new Set(variants.filter(Boolean)))
 
-  // 1. Try search with release Year
+  // 1. Try search with PSA and release Year
   if (cleanYear) {
     for (const variant of uniqueVariants) {
       const qWithYear = `${variant} ${cleanYear} psa`
-      const results = await executeRssQuery(qWithYear)
+      const results = await executeRssQuery(qWithYear, true)
       const filtered = results.filter((item) => matchesMovieTitle(item.title, movieTitle, cleanYear))
       if (filtered.length > 0) return filtered
     }
   }
 
-  // 2. Try search without release Year
+  // 2. Try search with PSA without release Year
   for (const variant of uniqueVariants) {
     const qNoYear = `${variant} psa`
-    const results = await executeRssQuery(qNoYear)
+    const results = await executeRssQuery(qNoYear, true)
     const filtered = results.filter((item) => matchesMovieTitle(item.title, movieTitle, cleanYear))
     if (filtered.length > 0) return filtered
   }
 
-  return []
+  // 3. Fallback: No PSA magnets found. Run search query without PSA name and show top 10 720p & 1080p only.
+  const nonPsaCandidates: PsaDownloadItem[] = []
+
+  if (cleanYear) {
+    for (const variant of uniqueVariants) {
+      const qWithYearNoPsa = `${variant} ${cleanYear}`
+      const results = await executeRssQuery(qWithYearNoPsa, false)
+      const filtered = results.filter((item) => matchesMovieTitle(item.title, movieTitle, cleanYear))
+      for (const item of filtered) {
+        if (!nonPsaCandidates.some((c) => c.magnet === item.magnet)) {
+          nonPsaCandidates.push(item)
+        }
+      }
+      const topPicks = filterTop1080And720(nonPsaCandidates, 10)
+      if (topPicks.length >= 10) return topPicks
+    }
+  }
+
+  for (const variant of uniqueVariants) {
+    const qNoYearNoPsa = `${variant}`
+    const results = await executeRssQuery(qNoYearNoPsa, false)
+    const filtered = results.filter((item) => matchesMovieTitle(item.title, movieTitle, cleanYear))
+    for (const item of filtered) {
+      if (!nonPsaCandidates.some((c) => c.magnet === item.magnet)) {
+        nonPsaCandidates.push(item)
+      }
+    }
+    const topPicks = filterTop1080And720(nonPsaCandidates, 10)
+    if (topPicks.length >= 10) return topPicks
+  }
+
+  return filterTop1080And720(nonPsaCandidates, 10)
 }
 
 export async function fetchPsaEpisodeDownloads(
@@ -325,23 +391,54 @@ export async function fetchPsaEpisodeDownloads(
 
   const uniqueVariants = Array.from(new Set(variants.filter(Boolean)))
 
-  // 1. Try search with release Year
+  // 1. Try search with PSA and release Year
   if (cleanYear) {
     for (const variant of uniqueVariants) {
       const qWithYear = `${variant} ${cleanYear} ${epCode} PSA`
-      const results = await executeRssQuery(qWithYear)
+      const results = await executeRssQuery(qWithYear, true)
       const filtered = results.filter((item) => matchesShowTitle(item.title, showTitle, epCode))
       if (filtered.length > 0) return filtered
     }
   }
 
-  // 2. Try search without release Year
+  // 2. Try search with PSA without release Year
   for (const variant of uniqueVariants) {
     const qNoYear = `${variant} ${epCode} PSA`
-    const results = await executeRssQuery(qNoYear)
+    const results = await executeRssQuery(qNoYear, true)
     const filtered = results.filter((item) => matchesShowTitle(item.title, showTitle, epCode))
     if (filtered.length > 0) return filtered
   }
 
-  return []
+  // 3. Fallback: No PSA magnets found. Run search query without PSA name and show top 10 720p & 1080p only.
+  const nonPsaCandidates: PsaDownloadItem[] = []
+
+  if (cleanYear) {
+    for (const variant of uniqueVariants) {
+      const qWithYearNoPsa = `${variant} ${cleanYear} ${epCode}`
+      const results = await executeRssQuery(qWithYearNoPsa, false)
+      const filtered = results.filter((item) => matchesShowTitle(item.title, showTitle, epCode))
+      for (const item of filtered) {
+        if (!nonPsaCandidates.some((c) => c.magnet === item.magnet)) {
+          nonPsaCandidates.push(item)
+        }
+      }
+      const topPicks = filterTop1080And720(nonPsaCandidates, 10)
+      if (topPicks.length >= 10) return topPicks
+    }
+  }
+
+  for (const variant of uniqueVariants) {
+    const qNoYearNoPsa = `${variant} ${epCode}`
+    const results = await executeRssQuery(qNoYearNoPsa, false)
+    const filtered = results.filter((item) => matchesShowTitle(item.title, showTitle, epCode))
+    for (const item of filtered) {
+      if (!nonPsaCandidates.some((c) => c.magnet === item.magnet)) {
+        nonPsaCandidates.push(item)
+      }
+    }
+    const topPicks = filterTop1080And720(nonPsaCandidates, 10)
+    if (topPicks.length >= 10) return topPicks
+  }
+
+  return filterTop1080And720(nonPsaCandidates, 10)
 }

@@ -235,6 +235,13 @@ const FRANCHISE_CATALOG: FranchiseEntry[] = [
 
 const KNOWN_GENRE_MAP: Record<string, string> = {
   action: 'Action',
+  adult: 'Adult',
+  erotic: 'Adult',
+  erotica: 'Adult',
+  '18+': 'Adult',
+  '18': 'Adult',
+  xxx: 'Adult',
+  porn: 'Adult',
   adventure: 'Adventure',
   animation: 'Animation',
   anime: 'Animation',

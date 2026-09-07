@@ -50,7 +50,7 @@ export const ThemeFooter: React.FC<ThemeFooterProps> = ({
             <div className="footer-col">
               <h2 className="widget-title">DISCOVER GENRES</h2>
               <div className="tagcloud flex flex-wrap gap-2">
-                {['Action', 'Sci-Fi', 'Comedy', 'Thriller', 'Animation', 'Horror', 'Drama', 'Adventure', 'Mystery', 'Fantasy'].map((genre) => (
+                {['Action', 'Sci-Fi', 'Comedy', 'Thriller', 'Animation', 'Horror', 'Drama', 'Adventure', 'Mystery', 'Fantasy', 'Adult'].map((genre) => (
                   <button
                     key={genre}
                     type="button"
@@ -63,7 +63,14 @@ export const ThemeFooter: React.FC<ThemeFooterProps> = ({
                       }
                     }}
                   >
-                    {genre}
+                    {genre === 'Adult' ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <span>Adult</span>
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500 text-white font-bold leading-none">18+</span>
+                      </span>
+                    ) : (
+                      genre
+                    )}
                   </button>
                 ))}
               </div>
