@@ -1,15 +1,4 @@
-import React from 'react'
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Badge,
-  Button,
-  Box,
-  Container,
-} from '@mui/material'
-import BookmarkIcon from '@mui/icons-material/Bookmark'
-import CasinoIcon from '@mui/icons-material/Casino'
+import React, { useState } from 'react'
 import logoImg from '../assets/logo.png'
 
 interface NavbarProps {
@@ -17,6 +6,12 @@ interface NavbarProps {
   onOpenWatchlist: () => void
   onResetSearch: () => void
   onRandomMovie: () => void
+  onQuickSearch?: (term: string) => void
+  onSelectType?: (type: string) => void
+  activeType?: string
+  isDarkMode?: boolean
+  onToggleDarkMode?: () => void
+  onOpenExtensionModal?: () => void
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -24,172 +19,344 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenWatchlist,
   onResetSearch,
   onRandomMovie,
+  onQuickSearch,
+  onSelectType,
+  activeType = '',
+  isDarkMode = false,
+  onToggleDarkMode,
+  onOpenExtensionModal,
 }) => {
+  const [headerSearchQuery, setHeaderSearchQuery] = useState('')
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
+
+  const handleHeaderSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (headerSearchQuery.trim() && onQuickSearch) {
+      onQuickSearch(headerSearchQuery.trim())
+      setIsMobileSearchOpen(false)
+      setIsMobileMenuOpen(false)
+    }
+  }
+
+  const handleNavClick = (callback: () => void) => {
+    callback()
+    setIsMobileMenuOpen(false)
+  }
+
   return (
-    <AppBar
-      position="sticky"
-      sx={{
-        background: 'rgba(5, 20, 16, 0.75)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        borderBottom: '1px solid rgba(52, 211, 153, 0.2)',
-        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(16, 185, 129, 0.15)',
-        zIndex: 50,
-      }}
-    >
-      <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ minHeight: { xs: 64, md: 72 }, justifyContent: 'space-between' }}>
-          {/* Logo & Title */}
-          <Box
-            onClick={onResetSearch}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-              cursor: 'pointer',
-              userSelect: 'none',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'scale(1.02)',
-              },
-            }}
-          >
-            {/* Glowing Liquid Droplet Icon Container */}
-            <Box
-              sx={{
-                width: { xs: 40, md: 46 },
-                height: { xs: 40, md: 46 },
-                borderRadius: '14px',
-                background: 'linear-gradient(135deg, rgba(52, 211, 153, 0.25) 0%, rgba(5, 150, 105, 0.45) 100%)',
-                border: '1px solid rgba(110, 231, 183, 0.4)',
-                boxShadow: '0 0 20px rgba(16, 185, 129, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backdropFilter: 'blur(10px)',
-                p: 0.5,
-              }}
-            >
-              <Box
-                component="img"
-                src={logoImg}
-                alt="PSA Fetch Logo"
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  filter: 'drop-shadow(0 0 8px rgba(52, 211, 153, 0.6))',
-                }}
-              />
-            </Box>
-
-            <Box>
-              <Typography
-                variant="h5"
-                component="div"
-                sx={{
-                  fontWeight: 800,
-                  fontSize: { xs: '1.25rem', md: '1.55rem' },
-                  letterSpacing: '-0.03em',
-                  background: 'linear-gradient(135deg, #ffffff 0%, #a7f3d0 60%, #34d399 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
+    <header id="masthead" className="site-header sticky top-0 z-50">
+      <div className="header-menu-box">
+        <div className="artblog-container">
+          <div className="flex-row">
+            {/* Left Branding */}
+            <div className="nav-menu-header-left">
+              <div
+                className="site-branding cursor-pointer"
+                onClick={() => {
+                  onResetSearch()
+                  setIsMobileMenuOpen(false)
                 }}
               >
-                PSA Fetch
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: '#6ee7b7',
-                  fontSize: '0.72rem',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                  opacity: 0.85,
-                  display: 'block',
-                  lineHeight: 1,
-                }}
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
+                    <img src={logoImg} alt="PSA Fetch Logo" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h1 className="site-title text-xl sm:text-2xl md:text-3xl font-normal tracking-wide text-slate-900 m-0 leading-none">
+                      PSA<span className="brand-accent text-[#58BCB3]">FETCH</span>
+                    </h1>
+                    <p className="site-description text-[10px] sm:text-xs text-slate-500 m-0 uppercase tracking-widest hidden xs:block">
+                      Cinema & Series Discovery
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Center Navigation Menu (Desktop) */}
+            <div className="nav-menu-header-center">
+              <nav id="site-navigation" className="main-navigation">
+                <ul>
+                  <li>
+                    <button
+                      type="button"
+                      className={`nav-link-btn ${activeType === '' ? 'active' : ''}`}
+                      onClick={onResetSearch}
+                    >
+                      Home
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className={`nav-link-btn ${activeType === 'movie' ? 'active' : ''}`}
+                      onClick={() => onSelectType?.('movie')}
+                    >
+                      Movies
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className={`nav-link-btn ${activeType === 'series' ? 'active' : ''}`}
+                      onClick={() => onSelectType?.('series')}
+                    >
+                      TV Shows
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className="nav-link-btn flex items-center gap-1 text-[#58BCB3]"
+                      onClick={onRandomMovie}
+                    >
+                      <i className="fas fa-dice mr-1"></i> Lucky Pick
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+            {/* Right Quick Search Pill & Watchlist & Mobile Toggles */}
+            <div className="nav-menu-header-right">
+              {/* Desktop Pill Search Bar */}
+              <form onSubmit={handleHeaderSearchSubmit} className="product-search-form">
+                <input
+                  type="search"
+                  placeholder="Search titles..."
+                  value={headerSearchQuery}
+                  onChange={(e) => setHeaderSearchQuery(e.target.value)}
+                  aria-label="Quick search"
+                />
+                <button type="submit" className="search-submit-btn" title="Search">
+                  <i className="fas fa-search text-xs"></i>
+                </button>
+              </form>
+
+              {/* Dark Mode Toggle Button */}
+              <button
+                type="button"
+                onClick={onToggleDarkMode}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer active:scale-95 shrink-0"
+                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                aria-label="Toggle dark mode"
               >
-                Movie Search Engine
-              </Typography>
-            </Box>
-          </Box>
+                <i className={`fas ${isDarkMode ? 'fa-sun text-amber-400' : 'fa-moon text-slate-600'} text-xs sm:text-sm`}></i>
+              </button>
 
-          {/* Right Action Bar */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5, md: 2 } }}>
-            {/* Random Movie Button with Dice Icon */}
-            <Button
-              onClick={onRandomMovie}
-              startIcon={<CasinoIcon sx={{ color: '#34d399', fontSize: { xs: 18, sm: 20 } }} />}
-              sx={{
-                color: '#ecfdf5',
-                bgcolor: 'rgba(16, 185, 129, 0.12)',
-                border: '1px solid rgba(52, 211, 153, 0.3)',
-                borderRadius: '14px',
-                px: { xs: 1.5, sm: 2 },
-                py: { xs: 0.7, sm: 0.85 },
-                fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                fontWeight: 600,
-                transition: 'all 0.25s ease',
-                '&:hover': {
-                  bgcolor: 'rgba(16, 185, 129, 0.25)',
-                  borderColor: '#34d399',
-                  boxShadow: '0 0 20px rgba(16, 185, 129, 0.35)',
-                  transform: 'translateY(-1px)',
-                },
-              }}
-            >
-              Random
-            </Button>
+              {/* Mobile Search Toggle Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileSearchOpen(!isMobileSearchOpen)
+                  if (isMobileMenuOpen) setIsMobileMenuOpen(false)
+                }}
+                className="md:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer"
+                title="Search"
+                aria-label="Toggle search bar"
+              >
+                <i className={`fas ${isMobileSearchOpen ? 'fa-times' : 'fa-search'} text-xs`}></i>
+              </button>
 
-            {/* Watchlist Trigger */}
-            <Button
-              onClick={onOpenWatchlist}
-              variant="outlined"
-              startIcon={
-                <Badge
-                  badgeContent={watchlistCount}
-                  color="primary"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      bgcolor: '#10b981',
-                      color: '#ffffff',
-                      fontWeight: 700,
-                      boxShadow: '0 0 10px rgba(16, 185, 129, 0.7)',
-                    },
-                  }}
+              {/* Watchlist Badge Pill */}
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenWatchlist()
+                  setIsMobileMenuOpen(false)
+                }}
+                className="header-watchlist-btn cursor-pointer"
+                title="View Watchlist"
+              >
+                <i className="fas fa-bookmark text-xs sm:text-sm"></i>
+                <span className="hidden sm:inline">Saved</span>
+                <span className="badge-pill">{watchlistCount}</span>
+              </button>
+
+              {/* Mobile Menu Hamburger Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(!isMobileMenuOpen)
+                  if (isMobileSearchOpen) setIsMobileSearchOpen(false)
+                }}
+                className="md:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer"
+                title="Menu"
+                aria-label="Toggle navigation menu"
+              >
+                <i className={`fas ${isMobileMenuOpen ? 'fa-times' : 'fa-bars'} text-xs`}></i>
+              </button>
+            </div>
+          </div>
+
+          {/* Expandable Mobile Search Bar */}
+          {isMobileSearchOpen && (
+            <div className="md:hidden py-3 border-t border-slate-100 animate-fadeIn">
+              <form onSubmit={handleHeaderSearchSubmit} className="flex items-center gap-2">
+                <div className="flex-1 relative flex items-center bg-slate-100 rounded-full border border-slate-200 px-3 py-1.5 focus-within:border-[#58BCB3] focus-within:bg-white transition">
+                  <i className="fas fa-search text-xs text-slate-400 mr-2"></i>
+                  <input
+                    type="search"
+                    placeholder="Search movies, TV shows, actors..."
+                    value={headerSearchQuery}
+                    onChange={(e) => setHeaderSearchQuery(e.target.value)}
+                    className="w-full bg-transparent border-none outline-none text-sm text-slate-800 placeholder:text-slate-400"
+                    autoFocus
+                  />
+                  {headerSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setHeaderSearchQuery('')}
+                      className="text-slate-400 hover:text-slate-600 p-1"
+                    >
+                      <i className="fas fa-times text-xs"></i>
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  className="bg-[#58BCB3] text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-xs active:scale-95 transition"
+                  style={{ fontFamily: 'var(--heading-font)' }}
                 >
-                  <BookmarkIcon sx={{ color: '#34d399', fontSize: { xs: 18, sm: 20 } }} />
-                </Badge>
-              }
-              sx={{
-                color: '#ecfdf5',
-                borderColor: 'rgba(52, 211, 153, 0.35)',
-                bgcolor: 'rgba(6, 25, 20, 0.6)',
-                backdropFilter: 'blur(12px)',
-                borderRadius: '14px',
-                px: { xs: 1.4, sm: 2 },
-                py: { xs: 0.7, sm: 0.85 },
-                fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                fontWeight: 600,
-                '&:hover': {
-                  borderColor: '#34d399',
-                  bgcolor: 'rgba(16, 185, 129, 0.18)',
-                  boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)',
-                },
-              }}
-            >
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                Watchlist
-              </Box>
-            </Button>
-          </Box>
-        </Toolbar>
-      </Container>
-    </AppBar>
+                  Search
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Expandable Mobile Navigation Panel */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden py-3 border-t border-slate-100 space-y-3 animate-fadeIn">
+              {/* Quick Search inside menu */}
+              <form onSubmit={handleHeaderSearchSubmit} className="flex items-center gap-2">
+                <div className="flex-1 relative flex items-center bg-slate-100 rounded-xl border border-slate-200 px-3 py-2 focus-within:border-[#58BCB3] focus-within:bg-white transition">
+                  <i className="fas fa-search text-xs text-slate-400 mr-2"></i>
+                  <input
+                    type="search"
+                    placeholder="Quick search titles..."
+                    value={headerSearchQuery}
+                    onChange={(e) => setHeaderSearchQuery(e.target.value)}
+                    className="w-full bg-transparent border-none outline-none text-sm text-slate-800 placeholder:text-slate-400"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="bg-[#58BCB3] text-white px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider"
+                  style={{ fontFamily: 'var(--heading-font)' }}
+                >
+                  Go
+                </button>
+              </form>
+
+              {/* Navigation Links Grid */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleNavClick(onResetSearch)}
+                  className={`flex items-center gap-2 p-2.5 rounded-xl border text-sm font-semibold transition ${
+                    activeType === ''
+                      ? 'bg-teal-50 border-teal-200 text-teal-800 shadow-2xs'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                  style={{ fontFamily: 'var(--heading-font)' }}
+                >
+                  <i className="fas fa-home text-xs text-[#58BCB3]"></i>
+                  <span>Home</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleNavClick(() => onSelectType?.('movie'))}
+                  className={`flex items-center gap-2 p-2.5 rounded-xl border text-sm font-semibold transition ${
+                    activeType === 'movie'
+                      ? 'bg-teal-50 border-teal-200 text-teal-800 shadow-2xs'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                  style={{ fontFamily: 'var(--heading-font)' }}
+                >
+                  <i className="fas fa-film text-xs text-[#58BCB3]"></i>
+                  <span>Movies</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleNavClick(() => onSelectType?.('series'))}
+                  className={`flex items-center gap-2 p-2.5 rounded-xl border text-sm font-semibold transition ${
+                    activeType === 'series'
+                      ? 'bg-teal-50 border-teal-200 text-teal-800 shadow-2xs'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                  style={{ fontFamily: 'var(--heading-font)' }}
+                >
+                  <i className="fas fa-tv text-xs text-[#58BCB3]"></i>
+                  <span>TV Shows</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleNavClick(onRandomMovie)}
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-sm font-semibold hover:bg-amber-100 shadow-2xs transition"
+                  style={{ fontFamily: 'var(--heading-font)' }}
+                >
+                  <i className="fas fa-dice text-xs text-amber-600"></i>
+                  <span>Lucky Pick</span>
+                </button>
+              </div>
+
+              {/* Watchlist Shortcut & Extension & Theme Mode Toggle */}
+              <div className="pt-1 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => handleNavClick(() => onOpenExtensionModal?.())}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-[#58BCB3] text-white text-xs font-bold shadow-2xs cursor-pointer active:scale-98 transition"
+                  style={{ fontFamily: 'var(--heading-font)' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <i className="fas fa-puzzle-piece text-white"></i>
+                    <span>PSA Grabber Extension (Edge / Chrome)</span>
+                  </div>
+                  <span className="bg-white/25 text-white px-2 py-0.5 rounded-md text-[10px] font-bold">
+                    v2.1.3
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleNavClick(onOpenWatchlist)}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-teal-50/60 border border-teal-200/80 text-teal-900 text-xs font-bold cursor-pointer"
+                  style={{ fontFamily: 'var(--heading-font)' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <i className="fas fa-bookmark text-[#58BCB3]"></i>
+                    <span>Saved Watchlist</span>
+                  </div>
+                  <span className="bg-[#58BCB3] text-white px-2 py-0.5 rounded-md text-[11px]">
+                    {watchlistCount} {watchlistCount === 1 ? 'item' : 'items'}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onToggleDarkMode?.()
+                  }}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold cursor-pointer"
+                  style={{ fontFamily: 'var(--heading-font)' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <i className={`fas ${isDarkMode ? 'fa-sun text-amber-400' : 'fa-moon text-slate-600'} text-xs`}></i>
+                    <span>Theme Appearance</span>
+                  </div>
+                  <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">
+                    {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
   )
 }

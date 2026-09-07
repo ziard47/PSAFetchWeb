@@ -1,88 +1,67 @@
 import { createTheme } from '@mui/material/styles'
 
-export const liquidGlassTheme = createTheme({
+export const artBlogMuiTheme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
     primary: {
-      main: '#10b981', // Emerald 500
-      light: '#6ee7b7', // Emerald 300
-      dark: '#047857', // Emerald 700
+      main: '#58BCB3', // Theme Teal
+      light: '#7ecdc6',
+      dark: '#439d95',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#14b8a6', // Teal 500
-      light: '#5eead4',
-      dark: '#0f766e',
+      main: '#1a202c',
+      light: '#2d3748',
+      dark: '#0f172a',
       contrastText: '#ffffff',
     },
     background: {
-      default: '#040d0a',
-      paper: 'rgba(10, 30, 24, 0.8)',
+      default: '#f7faf9',
+      paper: '#ffffff',
     },
     text: {
-      primary: '#f0fdf4',
-      secondary: '#a7f3d0',
+      primary: '#1a202c',
+      secondary: '#64748b',
     },
-    divider: 'rgba(52, 211, 153, 0.15)',
+    divider: 'rgba(88, 188, 179, 0.2)',
   },
   typography: {
-    fontFamily: '"Roboto", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    h1: { fontWeight: 800, letterSpacing: '-0.025em' },
-    h2: { fontWeight: 700, letterSpacing: '-0.02em' },
-    h3: { fontWeight: 700, letterSpacing: '-0.015em' },
-    h4: { fontWeight: 600 },
-    h5: { fontWeight: 600 },
-    h6: { fontWeight: 600 },
-    button: { textTransform: 'none', fontWeight: 600 },
+    fontFamily: '"PT Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    h1: { fontFamily: '"Fjalla One", sans-serif', letterSpacing: '0.02em', textTransform: 'uppercase' },
+    h2: { fontFamily: '"Fjalla One", sans-serif', letterSpacing: '0.02em', textTransform: 'uppercase' },
+    h3: { fontFamily: '"Fjalla One", sans-serif', letterSpacing: '0.02em', textTransform: 'uppercase' },
+    h4: { fontFamily: '"Fjalla One", sans-serif', letterSpacing: '0.02em', textTransform: 'uppercase' },
+    h5: { fontFamily: '"Fjalla One", sans-serif', letterSpacing: '0.02em', textTransform: 'uppercase' },
+    h6: { fontFamily: '"Fjalla One", sans-serif', letterSpacing: '0.02em', textTransform: 'uppercase' },
+    button: { fontFamily: '"Fjalla One", sans-serif', textTransform: 'uppercase', letterSpacing: '0.04em' },
   },
   shape: {
-    borderRadius: 16,
+    borderRadius: 14,
   },
   components: {
     MuiPaper: {
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          backgroundColor: 'rgba(13, 33, 27, 0.75)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(52, 211, 153, 0.2)',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.05)',
+          border: '1px solid #e5e7eb',
         },
       },
     },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          padding: '8px 20px',
-          backdropFilter: 'blur(10px)',
-          transition: 'all 0.25s ease-in-out',
-        },
-      },
-    },
-    MuiChip: {
-      styleOverrides: {
-        root: {
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(52, 211, 153, 0.25)',
-          backgroundColor: 'rgba(16, 185, 129, 0.12)',
-          color: '#ecfdf5',
-          fontWeight: 500,
-        },
-      },
-    },
-    MuiDialog: {
-      styleOverrides: {
-        paper: {
-          backgroundColor: 'rgba(8, 26, 21, 0.92)',
-          backdropFilter: 'blur(28px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
-          border: '1px solid rgba(52, 211, 153, 0.3)',
-          boxShadow: '0 24px 64px 0 rgba(0, 0, 0, 0.8), 0 0 40px rgba(16, 185, 129, 0.2)',
           borderRadius: 24,
+          padding: '8px 22px',
+          fontWeight: 600,
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: '0 4px 14px rgba(88, 188, 179, 0.35)',
+          },
         },
       },
     },
   },
 })
+
+export const liquidGlassTheme = artBlogMuiTheme

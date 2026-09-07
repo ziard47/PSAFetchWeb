@@ -47,50 +47,54 @@ export const WatchlistDrawer: React.FC<WatchlistDrawerProps> = ({
           sx: {
             width: { xs: '88vw', sm: 400 },
             maxWidth: '100vw',
-            background: 'rgba(5, 20, 16, 0.94)',
-            backdropFilter: 'blur(30px) saturate(190%)',
-            WebkitBackdropFilter: 'blur(30px) saturate(190%)',
-            borderLeft: '1.5px solid rgba(52, 211, 153, 0.3)',
-            color: '#f0fdf4',
+            background: '#ffffff',
+            borderLeft: '2px solid #58BCB3',
+            color: '#1a202c',
             p: { xs: 2.2, sm: 3 },
           },
         },
       }}
     >
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
           <Box
             sx={{
-              p: 1,
-              borderRadius: '12px',
-              bgcolor: 'rgba(16, 185, 129, 0.2)',
-              border: '1px solid rgba(52, 211, 153, 0.3)',
-              color: '#34d399',
+              p: 0.8,
+              borderRadius: '10px',
+              bgcolor: 'rgba(88, 188, 179, 0.15)',
+              color: '#58BCB3',
               display: 'flex',
             }}
           >
             <MovieIcon fontSize="small" />
           </Box>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#ecfdf5', letterSpacing: '-0.02em' }}>
-            My Watchlist ({watchlist.length})
+          <Typography
+            variant="h6"
+            sx={{
+              fontFamily: 'var(--heading-font)',
+              fontWeight: 400,
+              fontSize: '1.35rem',
+              color: '#1a202c',
+              letterSpacing: '0.02em',
+            }}
+          >
+            SAVED TITLES ({watchlist.length})
           </Typography>
         </Box>
 
         <IconButton
           onClick={onClose}
           sx={{
-            color: '#a7f3d0',
-            bgcolor: 'rgba(6, 25, 20, 0.6)',
-            border: '1px solid rgba(52, 211, 153, 0.2)',
-            '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.2)', color: '#ffffff' },
+            color: '#64748b',
+            '&:hover': { bgcolor: '#f1f5f9', color: '#1a202c' },
           }}
         >
           <CloseIcon fontSize="small" />
         </IconButton>
       </Box>
 
-      <Divider sx={{ borderColor: 'rgba(52, 211, 153, 0.2)', mb: 2 }} />
+      <Divider sx={{ borderColor: '#e2e8f0', mb: 2 }} />
 
       {/* List / Empty State */}
       {watchlist.length === 0 ? (
@@ -107,24 +111,24 @@ export const WatchlistDrawer: React.FC<WatchlistDrawerProps> = ({
         >
           <Box
             sx={{
-              width: 72,
-              height: 72,
+              width: 70,
+              height: 70,
               borderRadius: '50%',
-              bgcolor: 'rgba(16, 185, 129, 0.1)',
-              border: '1px solid rgba(52, 211, 153, 0.25)',
+              bgcolor: 'rgba(88, 188, 179, 0.1)',
+              border: '1px solid rgba(88, 188, 179, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               mb: 2,
-              color: '#34d399',
+              color: '#58BCB3',
             }}
           >
-            <BookmarkBorderIcon sx={{ fontSize: 36 }} />
+            <BookmarkBorderIcon sx={{ fontSize: 34 }} />
           </Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#f0fdf4', mb: 0.5 }}>
-            Your Watchlist is empty
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1a202c', mb: 0.5, fontFamily: 'var(--heading-font)' }}>
+            YOUR WATCHLIST IS EMPTY
           </Typography>
-          <Typography variant="body2" sx={{ color: '#a7f3d0', opacity: 0.8, maxWidth: 260 }}>
+          <Typography variant="body2" sx={{ color: '#64748b', maxWidth: 260 }}>
             Click the bookmark icon on any movie card or detail view to save it here for later.
           </Typography>
         </Box>
@@ -139,15 +143,15 @@ export const WatchlistDrawer: React.FC<WatchlistDrawerProps> = ({
                   onClose()
                 }}
                 sx={{
-                  bgcolor: 'rgba(6, 25, 20, 0.65)',
-                  border: '1px solid rgba(52, 211, 153, 0.2)',
-                  borderRadius: '16px',
+                  bgcolor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '14px',
                   p: 1.5,
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    bgcolor: 'rgba(16, 185, 129, 0.15)',
-                    borderColor: '#34d399',
+                    bgcolor: '#effaf8',
+                    borderColor: '#58BCB3',
                     transform: 'translateX(-3px)',
                   },
                 }}
@@ -160,8 +164,8 @@ export const WatchlistDrawer: React.FC<WatchlistDrawerProps> = ({
                         onRemoveItem(item.imdbID)
                       }}
                       sx={{
-                        color: '#6ee7b7',
-                        '&:hover': { color: '#f87171', bgcolor: 'rgba(239, 68, 68, 0.15)' },
+                        color: '#94a3b8',
+                        '&:hover': { color: '#ef4444', bgcolor: 'rgba(239, 68, 68, 0.1)' },
                       }}
                     >
                       <BookmarkRemoveIcon fontSize="small" />
@@ -177,9 +181,8 @@ export const WatchlistDrawer: React.FC<WatchlistDrawerProps> = ({
                     sx={{
                       width: 46,
                       height: 64,
-                      borderRadius: '10px',
-                      bgcolor: 'rgba(16, 185, 129, 0.2)',
-                      border: '1px solid rgba(52, 211, 153, 0.3)',
+                      borderRadius: '8px',
+                      bgcolor: '#e2e8f0',
                     }}
                   >
                     <MovieIcon />
@@ -194,7 +197,7 @@ export const WatchlistDrawer: React.FC<WatchlistDrawerProps> = ({
                       component="div"
                       sx={{
                         fontWeight: 700,
-                        color: '#f0fdf4',
+                        color: '#1a202c',
                         lineHeight: 1.3,
                         pr: 2,
                       }}
@@ -205,8 +208,8 @@ export const WatchlistDrawer: React.FC<WatchlistDrawerProps> = ({
                   }
                   secondary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                      <span className="text-xs text-emerald-400 font-semibold">{item.Year}</span>
-                      <span className="text-xs uppercase px-1.5 py-0.2 rounded bg-emerald-950/80 border border-emerald-500/30 text-emerald-300">
+                      <span className="text-xs text-[#58BCB3] font-bold">{item.Year}</span>
+                      <span className="text-xs uppercase px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 font-semibold">
                         {item.Type}
                       </span>
                     </Box>
@@ -221,7 +224,7 @@ export const WatchlistDrawer: React.FC<WatchlistDrawerProps> = ({
       {/* Footer Clear All */}
       {watchlist.length > 0 && (
         <Box sx={{ pt: 2, mt: 'auto' }}>
-          <Divider sx={{ borderColor: 'rgba(52, 211, 153, 0.2)', mb: 2 }} />
+          <Divider sx={{ borderColor: '#e2e8f0', mb: 2 }} />
           <Button
             fullWidth
             variant="outlined"
@@ -229,14 +232,7 @@ export const WatchlistDrawer: React.FC<WatchlistDrawerProps> = ({
             startIcon={<DeleteIcon />}
             onClick={onClearAll}
             sx={{
-              borderColor: 'rgba(239, 68, 68, 0.4)',
-              color: '#fca5a5',
-              bgcolor: 'rgba(239, 68, 68, 0.08)',
-              borderRadius: '14px',
-              '&:hover': {
-                bgcolor: 'rgba(239, 68, 68, 0.2)',
-                borderColor: '#ef4444',
-              },
+              borderRadius: '12px',
             }}
           >
             Clear All Watchlist

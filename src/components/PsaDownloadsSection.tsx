@@ -13,7 +13,6 @@ import {
 import DownloadIcon from '@mui/icons-material/Download'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import StorageIcon from '@mui/icons-material/Storage'
-import FlashOnIcon from '@mui/icons-material/FlashOn'
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'
 import { PsaDownloadItem } from '../types/movie'
 import { fetchPsaDownloads, fetchPsaEpisodeDownloads } from '../services/psaDownloads'
@@ -25,6 +24,7 @@ interface PsaDownloadsSectionProps {
   season?: number | string
   episode?: number | string
   year?: string
+  onOpenExtensionModal?: () => void
 }
 
 export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
@@ -34,6 +34,7 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
   season,
   episode,
   year,
+  onOpenExtensionModal,
 }) => {
   const [downloads, setDownloads] = useState<PsaDownloadItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -82,11 +83,11 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
 
   return (
     <Box
-      className="liquid-glass rounded-3xl p-4 sm:p-6 md:p-7 mt-6"
-      sx={{
-        border: '1.5px solid rgba(52, 211, 153, 0.35)',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(16, 185, 129, 0.2)',
-      }}
+      className={
+        isEpisode
+          ? 'bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs'
+          : 'mt-8 bg-white rounded-2xl p-5 sm:p-7 border border-slate-200 shadow-sm'
+      }
     >
       {/* Header Bar */}
       <Box
@@ -96,7 +97,9 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 2,
-          mb: 3,
+          mb: 2.5,
+          pb: 2,
+          borderBottom: '1px solid #e2e8f0',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -104,29 +107,29 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
             sx={{
               p: { xs: 0.8, sm: 1 },
               borderRadius: '12px',
-              bgcolor: 'rgba(16, 185, 129, 0.25)',
-              border: '1px solid rgba(52, 211, 153, 0.4)',
-              color: '#34d399',
+              bgcolor: 'rgba(88, 188, 179, 0.15)',
+              border: '1px solid rgba(88, 188, 179, 0.4)',
+              color: '#58BCB3',
               display: 'flex',
-              boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)',
             }}
           >
             <DownloadIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
           </Box>
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#ecfdf5', fontSize: { xs: '1rem', sm: '1.25rem' }, letterSpacing: '-0.02em' }}>
-                {isEpisode ? 'Episode Downloads' : 'PSA Downloads'}
+              <Typography
+                variant="h6"
+                sx={{
+                  fontFamily: 'var(--heading-font)',
+                  fontWeight: 400,
+                  color: '#1a202c',
+                  fontSize: { xs: '1.2rem', sm: '1.45rem' },
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {isEpisode ? 'EPISODE DOWNLOADS' : 'MOVIE DOWNLOADS'}
               </Typography>
-              <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-950 border border-emerald-400/50 text-emerald-300 shadow-sm flex items-center gap-1">
-                <FlashOnIcon sx={{ fontSize: 11, color: '#34d399' }} /> HEVC x265
-              </span>
             </Box>
-            <Typography variant="caption" sx={{ color: '#a7f3d0', opacity: 0.85, fontSize: { xs: '0.72rem', sm: '0.78rem' }, display: 'block' }}>
-              {isEpisode
-                ? 'High-efficiency x265 episode encodes (720p / 1080p / 2160p)'
-                : 'High-efficiency x265 movie releases with multi-channel audio & HDR'}
-            </Typography>
           </Box>
         </Box>
 
@@ -141,16 +144,16 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
                 onClick={() => setSelectedResolution(res)}
                 clickable
                 sx={{
-                  bgcolor: selectedResolution === res ? 'rgba(16, 185, 129, 0.35)' : 'rgba(6, 25, 20, 0.65)',
-                  border: selectedResolution === res ? '1.5px solid #34d399' : '1px solid rgba(52, 211, 153, 0.25)',
-                  color: selectedResolution === res ? '#ffffff' : '#a7f3d0',
-                  fontWeight: 700,
+                  bgcolor: selectedResolution === res ? '#58BCB3' : '#f1f5f9',
+                  border: selectedResolution === res ? '1px solid #58BCB3' : '1px solid #e2e8f0',
+                  color: selectedResolution === res ? '#ffffff' : '#475569',
+                  fontWeight: 600,
                   fontSize: '0.75rem',
-                  boxShadow: selectedResolution === res ? '0 0 14px rgba(16, 185, 129, 0.4)' : 'none',
+                  fontFamily: 'var(--heading-font)',
+                  letterSpacing: '0.04em',
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    bgcolor: 'rgba(16, 185, 129, 0.25)',
-                    color: '#ffffff',
+                    bgcolor: selectedResolution === res ? '#439d95' : '#e2e8f0',
                   },
                 }}
               />
@@ -162,8 +165,8 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
       {/* Content State */}
       {loading ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 6 }}>
-          <CircularProgress size={32} sx={{ color: '#34d399', mb: 2 }} />
-          <Typography sx={{ color: '#6ee7b7', fontWeight: 600, fontSize: '0.9rem' }}>
+          <CircularProgress size={32} sx={{ color: '#58BCB3', mb: 2 }} />
+          <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.9rem' }}>
             Searching PSA HEVC releases in background...
           </Typography>
         </Box>
@@ -176,24 +179,25 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
             return (
               <Box
                 key={idx}
-                className="liquid-glass-card group p-3.5 sm:p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3"
-                sx={{
-                  border: '1px solid rgba(52, 211, 153, 0.25)',
-                  background: 'linear-gradient(135deg, rgba(8, 32, 26, 0.8) 0%, rgba(4, 20, 16, 0.95) 100%)',
-                }}
+                className={`group p-3.5 sm:p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 border hover:border-[#58BCB3] transition-all ${
+                  isEpisode
+                    ? 'bg-white hover:bg-teal-50/40 border-slate-200'
+                    : 'bg-slate-50 hover:bg-teal-50/40 border-slate-200'
+                }`}
               >
                 {/* Left: Release Title & Spec Badges */}
                 <Box sx={{ flex: 1, pr: { md: 2 } }}>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, mb: 0.8 }}>
                     {/* Quality Resolution Badge */}
                     <span
-                      className={`px-2 py-0.5 rounded-md text-[11px] font-black tracking-wide border shadow-sm ${
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-bold tracking-wide border shadow-2xs ${
                         is4k
-                          ? 'bg-amber-950/80 border-amber-400/60 text-amber-300'
+                          ? 'bg-amber-100 border-amber-300 text-amber-900'
                           : is1080p
-                          ? 'bg-emerald-950/80 border-emerald-400/60 text-emerald-300'
-                          : 'bg-teal-950/80 border-teal-400/60 text-teal-300'
+                          ? 'bg-teal-100 border-teal-300 text-teal-900'
+                          : 'bg-slate-200 border-slate-300 text-slate-800'
                       }`}
+                      style={{ fontFamily: 'var(--heading-font)' }}
                     >
                       {item.resolution.toUpperCase()}
                     </span>
@@ -207,20 +211,20 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
                         px: 1.2,
                         py: 0.2,
                         borderRadius: '6px',
-                        bgcolor: 'rgba(6, 30, 24, 0.8)',
-                        border: '1px solid rgba(52, 211, 153, 0.3)',
-                        color: '#6ee7b7',
-                        fontSize: '0.72rem',
+                        bgcolor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        color: '#475569',
+                        fontSize: '0.75rem',
                         fontWeight: 700,
                       }}
                     >
-                      <StorageIcon sx={{ fontSize: 13, color: '#34d399' }} />
+                      <StorageIcon sx={{ fontSize: 13, color: '#58BCB3' }} />
                       <span>{item.size}</span>
                     </Box>
 
                     {/* Codec / Audio specs */}
                     {item.codecInfo && (
-                      <span className="text-[11px] text-emerald-300/80 font-medium">
+                      <span className="text-xs text-slate-500 font-medium">
                         {item.codecInfo}
                       </span>
                     )}
@@ -231,18 +235,18 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
                     variant="body2"
                     sx={{
                       fontWeight: 700,
-                      color: '#f0fdf4',
-                      fontSize: { xs: '0.85rem', sm: '0.92rem' },
+                      color: '#1a202c',
+                      fontSize: { xs: '0.88rem', sm: '0.95rem' },
                       wordBreak: 'break-all',
                       lineHeight: 1.4,
                     }}
-                    className="group-hover:text-emerald-300 transition-colors"
+                    className="group-hover:text-[#439d95] transition-colors"
                   >
                     {item.title}
                   </Typography>
 
                   {item.pubDate && (
-                    <Typography variant="caption" sx={{ color: '#6ee7b7', opacity: 0.7, mt: 0.3, display: 'block', fontSize: '0.7rem' }}>
+                    <Typography variant="caption" sx={{ color: '#94a3b8', mt: 0.3, display: 'block', fontSize: '0.72rem' }}>
                       Added: {item.pubDate}
                     </Typography>
                   )}
@@ -268,10 +272,12 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
                       flex: { xs: 1, md: 'none' },
                       px: 2.5,
                       py: 0.9,
-                      fontWeight: 700,
-                      fontSize: '0.82rem',
-                      borderRadius: '12px',
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      borderRadius: '24px',
                       whiteSpace: 'nowrap',
+                      bgcolor: '#58BCB3',
+                      '&:hover': { bgcolor: '#439d95' },
                     }}
                   >
                     Download Magnet
@@ -282,15 +288,16 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
                       size="small"
                       onClick={() => handleCopyMagnet(item.magnet, item.title)}
                       sx={{
-                        color: '#34d399',
-                        bgcolor: 'rgba(6, 25, 20, 0.7)',
-                        border: '1px solid rgba(52, 211, 153, 0.35)',
+                        color: '#64748b',
+                        bgcolor: '#ffffff',
+                        border: '1px solid #cbd5e1',
                         p: 0.9,
-                        borderRadius: '10px',
+                        borderRadius: '50%',
                         flexShrink: 0,
                         '&:hover': {
-                          bgcolor: 'rgba(16, 185, 129, 0.25)',
-                          color: '#ffffff',
+                          bgcolor: 'rgba(88, 188, 179, 0.15)',
+                          color: '#58BCB3',
+                          borderColor: '#58BCB3',
                         },
                       }}
                     >
@@ -313,9 +320,9 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(6, 25, 20, 0.5)',
-            border: '1px dashed rgba(52, 211, 153, 0.25)',
-            borderRadius: '18px',
+            background: '#f8fafc',
+            border: '1px dashed #cbd5e1',
+            borderRadius: '16px',
           }}
         >
           <Box
@@ -323,25 +330,51 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
               width: 50,
               height: 50,
               borderRadius: '50%',
-              bgcolor: 'rgba(16, 185, 129, 0.12)',
-              border: '1px solid rgba(52, 211, 153, 0.25)',
+              bgcolor: 'rgba(88, 188, 179, 0.12)',
+              border: '1px solid rgba(88, 188, 179, 0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#34d399',
+              color: '#58BCB3',
               mb: 1.5,
             }}
           >
             <HourglassEmptyIcon sx={{ fontSize: 26 }} />
           </Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#f0fdf4', mb: 0.5 }}>
-            Downloads coming soon.
+          <Typography variant="subtitle1" sx={{ fontWeight: 400, color: '#1a202c', mb: 0.5, fontFamily: 'var(--heading-font)', fontSize: '1.2rem' }}>
+            DOWNLOADS COMING SOON
           </Typography>
-          <Typography variant="body2" sx={{ color: '#a7f3d0', opacity: 0.8, maxWidth: 360, fontSize: '0.82rem' }}>
+          <Typography variant="body2" sx={{ color: '#64748b', maxWidth: 360, fontSize: '0.85rem' }}>
             No PSA HEVC encodes were found for this title yet. Releases will appear here as soon as they become available.
           </Typography>
         </Box>
       )}
+
+      {/* PSA Grabber Extension Tip Banner */}
+      <div className="mt-4 pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 bg-teal-50/50 p-3 sm:p-3.5 rounded-xl border border-teal-100">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-teal-100 text-[#439d95] flex items-center justify-center shrink-0">
+            <i className="fas fa-puzzle-piece text-xs"></i>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-800 m-0">
+              Browsing PSA Rips website directly?
+            </p>
+            <p className="text-[11px] text-slate-500 m-0">
+              Get our official <strong>PSA Grabber Extension</strong> for Microsoft Edge & Chrome to grab all magnet links instantly.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onOpenExtensionModal}
+          className="bg-[#58BCB3] hover:bg-[#439d95] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase shadow-2xs transition shrink-0 active:scale-95 cursor-pointer"
+          style={{ fontFamily: 'var(--heading-font)' }}
+        >
+          Get Extension
+        </button>
+      </div>
 
       {/* Snackbar Copy Feedback */}
       <Snackbar
@@ -353,10 +386,9 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
         <Alert
           severity="success"
           sx={{
-            bgcolor: 'rgba(6, 30, 24, 0.95)',
-            color: '#a7f3d0',
-            border: '1px solid rgba(52, 211, 153, 0.4)',
-            backdropFilter: 'blur(16px)',
+            bgcolor: '#1a202c',
+            color: '#ffffff',
+            border: '1px solid #58BCB3',
           }}
         >
           {snackbarMessage}

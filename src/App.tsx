@@ -2,29 +2,103 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   ThemeProvider,
   CssBaseline,
-  Container,
-  Box,
-  Typography,
-  Button,
-  CircularProgress,
-  Alert,
 } from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { liquidGlassTheme } from './theme'
+import { artBlogMuiTheme } from './theme'
 import { Navbar } from './components/Navbar'
+import { ThemeHeroSlider } from './components/ThemeHeroSlider'
 import { SearchBar } from './components/SearchBar'
 import { MovieCard } from './components/MovieCard'
+import { ThemeSidebar } from './components/ThemeSidebar'
+import { ThemeFooter } from './components/ThemeFooter'
 import { MovieDetailsPage } from './components/MovieDetailsPage'
 import { WatchlistDrawer } from './components/WatchlistDrawer'
 import { LatestReleasesGrid } from './components/LatestReleasesGrid'
-import { searchMovies, getMovieDetails, fetchLatestReleases } from './services/movieApi'
+import { ExtensionModal } from './components/ExtensionModal'
+import { FloatingExtensionButton } from './components/FloatingExtensionButton'
+import {
+  searchMovies,
+  getMovieDetails,
+  fetchLatestReleases,
+  fetchMoviesByGenre,
+  getSearchCollectionTitle,
+} from './services/movieApi'
 import { MovieDetails, MovieSummary, SearchFilters, WatchlistItem } from './types/movie'
+import { enable as enableDarkReader, disable as disableDarkReader, setFetchMethod } from 'darkreader'
 
 const WATCHLIST_STORAGE_KEY = 'psa_fetch_watchlist_v1'
+const THEME_MODE_STORAGE_KEY = 'psa_fetch_theme_mode_v1'
+
+function extractMovieIdFromUrl(): string | null {
+  try {
+    // Check pathname: /movie/tt1234567, /movie tt1234567, /movie-tt1234567 or /tt1234567
+    const pathname = decodeURIComponent(window.location.pathname)
+
+    // Format 1: /movie/id or /movie id or /movie-id
+    const moviePrefixMatch = pathname.match(/^\/movie(?:[\/\s_]+([a-zA-Z0-9_-]+))?$/i)
+    if (moviePrefixMatch && moviePrefixMatch[1]) {
+      return moviePrefixMatch[1].trim()
+    }
+
+    // Format 2: /tt1234567 or other alphanumeric IDs directly
+    const directIdMatch = pathname.match(/^\/(tt\d+|tvmaze-\d+|[a-zA-Z0-9_-]{5,})$/i)
+    if (directIdMatch && directIdMatch[1]) {
+      return directIdMatch[1].trim()
+    }
+
+    // Format 3: Hash support #/movie/id or #id
+    const hash = decodeURIComponent(window.location.hash)
+    const hashMatch = hash.match(/^#\/?(?:movie[\/\s_]*)?([a-zA-Z0-9_-]+)/i)
+    if (hashMatch && hashMatch[1]) {
+      return hashMatch[1].trim()
+    }
+
+    // Format 4: Query parameter ?movie=id or ?id=id
+    const params = new URLSearchParams(window.location.search)
+    const queryId = params.get('movie') || params.get('id')
+    if (queryId) {
+      return queryId.trim()
+    }
+  } catch (e) {
+    console.error('Failed to parse URL for movie ID', e)
+  }
+  return null
+}
+
+function extractSearchQueryFromUrl(): string | null {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const query = params.get('s') || params.get('search') || params.get('q')
+    if (query && query.trim()) {
+      return query.trim()
+    }
+  } catch (e) {
+    console.error('Failed to parse URL for search query', e)
+  }
+  return null
+}
+
+function extractGenreFromUrl(): string | null {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const genre = params.get('genre')
+    if (genre && genre.trim()) {
+      return genre.trim()
+    }
+  } catch (e) {
+    console.error('Failed to parse URL for genre', e)
+  }
+  return null
+}
+
+function formatSearchUrl(searchTerm: string): string {
+  const encoded = encodeURIComponent(searchTerm).replace(/%20/g, '+')
+  return `/?s=${encoded}`
+}
 
 export default function App() {
-  const [query, setQuery] = useState('')
-  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [query, setQuery] = useState(() => extractSearchQueryFromUrl() || '')
+  const [debouncedQuery, setDebouncedQuery] = useState(() => extractSearchQueryFromUrl() || '')
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(() => extractGenreFromUrl())
   const [filters, setFilters] = useState<SearchFilters>({
     type: '',
     page: 1,
@@ -35,6 +109,9 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // Featured Movie for Hero Slider
+  const [featuredMovie, setFeaturedMovie] = useState<MovieSummary | null>(null)
 
   // Full-Page Selected Movie State
   const [selectedMovieId, setSelectedMovieId] = useState<string | null>(null)
@@ -51,11 +128,169 @@ export default function App() {
     }
   })
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false)
+  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false)
+
+  // Dark Mode State powered by DarkReader
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(THEME_MODE_STORAGE_KEY)
+      if (saved) return saved === 'dark'
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    } catch {
+      return false
+    }
+  })
+
+  // Synchronize DarkReader with isDarkMode
+  useEffect(() => {
+    try {
+      setFetchMethod(window.fetch)
+      if (isDarkMode) {
+        enableDarkReader({
+          brightness: 100,
+          contrast: 95,
+          sepia: 0,
+        })
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'dark')
+      } else {
+        disableDarkReader()
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'light')
+      }
+    } catch (e) {
+      console.error('Failed to toggle DarkReader', e)
+    }
+  }, [isDarkMode])
+
+  const handleToggleDarkMode = () => {
+    setIsDarkMode((prev) => !prev)
+  }
+
+  // Load movie by ID helper (used for direct URL navigation)
+  const loadMovieById = useCallback(async (id: string, updateHistory = false) => {
+    setSelectedMovieId(id)
+    setIsDetailsLoading(true)
+    setSelectedMovieDetails(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+
+    if (updateHistory) {
+      const newPath = `/movie/${encodeURIComponent(id)}`
+      if (window.location.pathname !== newPath) {
+        window.history.pushState({ movieId: id }, '', newPath)
+      }
+    }
+
+    const details = await getMovieDetails(id)
+    if (details) {
+      setSelectedMovieDetails(details)
+      if (details.imdbID && details.imdbID.startsWith('tt') && id !== details.imdbID) {
+        setSelectedMovieId(details.imdbID)
+        const newPath = `/movie/${encodeURIComponent(details.imdbID)}`
+        window.history.replaceState({ movieId: details.imdbID }, '', newPath)
+      }
+    } else {
+      setSelectedMovieDetails({
+        imdbID: id,
+        Title: id,
+        Year: 'N/A',
+        Rated: 'N/A',
+        Released: 'N/A',
+        Runtime: 'N/A',
+        Genre: 'Feature Film',
+        Director: 'N/A',
+        Writer: 'N/A',
+        Actors: 'Information available in main index',
+        Plot: 'Detailed synopsis not available.',
+        Language: 'English',
+        Country: 'USA',
+        Awards: 'N/A',
+        Poster: 'N/A',
+        Ratings: [],
+        Metascore: 'N/A',
+        imdbRating: 'N/A',
+        imdbVotes: 'N/A',
+        Type: 'movie',
+        Response: 'True',
+      })
+    }
+    setIsDetailsLoading(false)
+  }, [])
+
+  // Listen for browser Back/Forward (popstate) and initial page load URL
+  useEffect(() => {
+    const handlePopState = () => {
+      const movieId = extractMovieIdFromUrl()
+      if (movieId) {
+        loadMovieById(movieId, false)
+      } else {
+        setSelectedMovieId(null)
+        setSelectedMovieDetails(null)
+        const s = extractSearchQueryFromUrl()
+        const g = extractGenreFromUrl()
+        if (s) {
+          setSelectedGenre(null)
+          setQuery(s)
+          setDebouncedQuery(s)
+        } else if (g) {
+          setQuery('')
+          setDebouncedQuery('')
+          setSelectedGenre(g)
+        } else {
+          setQuery('')
+          setDebouncedQuery('')
+          setSelectedGenre(null)
+          setMovies([])
+          setTotalResults(0)
+        }
+      }
+    }
+
+    // Initial check on mount
+    const initialId = extractMovieIdFromUrl()
+    if (initialId) {
+      loadMovieById(initialId, false)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [loadMovieById])
+
+  // Sync URL with search query or genre
+  useEffect(() => {
+    if (selectedMovieId) return
+
+    const currentSearch = extractSearchQueryFromUrl()
+    const currentGenre = extractGenreFromUrl()
+
+    if (debouncedQuery.trim()) {
+      if (currentSearch !== debouncedQuery.trim()) {
+        const newUrl = formatSearchUrl(debouncedQuery.trim())
+        if (currentSearch !== null) {
+          window.history.replaceState({ s: debouncedQuery.trim() }, '', newUrl)
+        } else {
+          window.history.pushState({ s: debouncedQuery.trim() }, '', newUrl)
+        }
+      }
+    } else if (selectedGenre) {
+      if (currentGenre !== selectedGenre) {
+        const newUrl = `/?genre=${encodeURIComponent(selectedGenre)}`
+        window.history.pushState({ genre: selectedGenre }, '', newUrl)
+      }
+    } else {
+      if (currentSearch !== null || currentGenre !== null || (window.location.pathname !== '/' && !window.location.pathname.startsWith('/movie'))) {
+        window.history.replaceState({}, '', '/')
+      }
+    }
+  }, [debouncedQuery, selectedGenre, selectedMovieId])
 
   // Debounce search input
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const handleQueryChange = (val: string) => {
     setQuery(val)
+    if (val.trim()) {
+      setSelectedGenre(null)
+    }
     if (debounceTimer.current) clearTimeout(debounceTimer.current)
     debounceTimer.current = setTimeout(() => {
       setDebouncedQuery(val)
@@ -64,20 +299,59 @@ export default function App() {
   }
 
   const handleQuickSearch = (term: string) => {
-    setSelectedMovieId(null)
-    setQuery(term)
-    setDebouncedQuery(term)
+    const trimmed = term.trim()
+    if (selectedMovieId) {
+      setSelectedMovieId(null)
+      setSelectedMovieDetails(null)
+    }
+    setSelectedGenre(null)
+    setQuery(trimmed)
+    setDebouncedQuery(trimmed)
     setFilters((prev) => ({ ...prev, page: 1 }))
+    if (trimmed) {
+      const newUrl = formatSearchUrl(trimmed)
+      if (window.location.search !== `?s=${encodeURIComponent(trimmed).replace(/%20/g, '+')}` || window.location.pathname !== '/') {
+        window.history.pushState({ s: trimmed }, '', newUrl)
+      }
+    } else {
+      window.history.pushState({}, '', '/')
+    }
+    window.scrollTo({ top: 300, behavior: 'smooth' })
+  }
+
+  const handleSelectGenre = (genre: string) => {
+    if (selectedMovieId) {
+      setSelectedMovieId(null)
+      setSelectedMovieDetails(null)
+    }
+    setQuery('')
+    setDebouncedQuery('')
+    setSelectedGenre((prev) => {
+      const next = prev === genre ? null : genre
+      if (next) {
+        window.history.pushState({ genre: next }, '', `/?genre=${encodeURIComponent(next)}`)
+      } else {
+        window.history.pushState({}, '', '/')
+      }
+      return next
+    })
+    window.scrollTo({ top: 300, behavior: 'smooth' })
   }
 
   const handleResetSearch = () => {
+    if (selectedMovieId || window.location.pathname !== '/' || window.location.search !== '') {
+      window.history.pushState({}, '', '/')
+    }
     setSelectedMovieId(null)
+    setSelectedMovieDetails(null)
+    setSelectedGenre(null)
     setQuery('')
     setDebouncedQuery('')
     setMovies([])
     setTotalResults(0)
     setErrorMessage(null)
     setFilters({ type: '', page: 1 })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   // Save watchlist changes to localStorage
@@ -89,9 +363,9 @@ export default function App() {
     }
   }, [watchlist])
 
-  // Fetch Movies when query or filters change
+  // Fetch Movies when query, selectedGenre, or filters change
   useEffect(() => {
-    if (!debouncedQuery.trim()) {
+    if (!selectedGenre && !debouncedQuery.trim()) {
       setMovies([])
       setTotalResults(0)
       setErrorMessage(null)
@@ -103,7 +377,13 @@ export default function App() {
       setIsLoading(true)
       setErrorMessage(null)
 
-      const result = await searchMovies(debouncedQuery, { ...filters, page: 1 })
+      let result
+      if (selectedGenre) {
+        result = await fetchMoviesByGenre(selectedGenre, filters.type)
+      } else {
+        result = await searchMovies(debouncedQuery, { ...filters, page: 1 })
+      }
+
       if (!isSubscribed) return
 
       if (result.error) {
@@ -122,10 +402,11 @@ export default function App() {
     return () => {
       isSubscribed = false
     }
-  }, [debouncedQuery, filters.type])
+  }, [selectedGenre, debouncedQuery, filters.type])
 
-  // Load More Pages
+  // Load More Pages (for query searches)
   const handleLoadMore = async () => {
+    if (selectedGenre) return
     const nextPage = filters.page + 1
     setIsLoadingMore(true)
 
@@ -138,43 +419,9 @@ export default function App() {
   }
 
   // Navigate to Full Page Details
-  const handleSelectMovie = useCallback(async (summary: MovieSummary) => {
-    setSelectedMovieId(summary.imdbID)
-    setIsDetailsLoading(true)
-    setSelectedMovieDetails(null)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-
-    const details = await getMovieDetails(summary.imdbID)
-    if (details) {
-      setSelectedMovieDetails(details)
-    } else {
-      // Fallback details
-      setSelectedMovieDetails({
-        imdbID: summary.imdbID,
-        Title: summary.Title,
-        Year: summary.Year,
-        Rated: 'N/A',
-        Released: summary.Year,
-        Runtime: 'N/A',
-        Genre: 'Feature Film',
-        Director: 'N/A',
-        Writer: 'N/A',
-        Actors: 'Cast information available in main listing',
-        Plot: 'Detailed synopsis not available.',
-        Language: 'English',
-        Country: 'USA',
-        Awards: 'N/A',
-        Poster: summary.Poster,
-        Ratings: [],
-        Metascore: 'N/A',
-        imdbRating: 'N/A',
-        imdbVotes: 'N/A',
-        Type: summary.Type,
-        Response: 'True',
-      })
-    }
-    setIsDetailsLoading(false)
-  }, [])
+  const handleSelectMovie = useCallback((summary: MovieSummary) => {
+    loadMovieById(summary.imdbID, true)
+  }, [loadMovieById])
 
   // Random Movie Handler
   const handleRandomMovie = useCallback(async () => {
@@ -187,6 +434,13 @@ export default function App() {
   }, [handleSelectMovie])
 
   const handleBackToSearch = () => {
+    if (debouncedQuery.trim()) {
+      window.history.pushState({ s: debouncedQuery.trim() }, '', formatSearchUrl(debouncedQuery.trim()))
+    } else if (selectedGenre) {
+      window.history.pushState({ genre: selectedGenre }, '', `/?genre=${encodeURIComponent(selectedGenre)}`)
+    } else {
+      window.history.pushState({}, '', '/')
+    }
     setSelectedMovieId(null)
     setSelectedMovieDetails(null)
   }
@@ -224,173 +478,192 @@ export default function App() {
 
   const isCurrentMovieBookmarked = (id: string) => watchlist.some((item) => item.imdbID === id)
 
-  const hasMore = movies.length < totalResults
+  const hasMore = !selectedGenre && movies.length < totalResults
 
   return (
-    <ThemeProvider theme={liquidGlassTheme}>
+    <ThemeProvider theme={artBlogMuiTheme}>
       <CssBaseline />
 
-      {/* Main Liquid Canvas Background */}
-      <Box className="relative min-h-screen bg-[#030e0a] text-slate-100 overflow-x-hidden selection:bg-emerald-500 selection:text-emerald-950">
-        {/* Animated Fluid Liquid Blobs */}
-        <Box className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          {/* Primary Top Emerald Orb */}
-          <Box className="animate-blob-1 absolute -top-40 left-1/4 w-96 h-96 md:w-150 md:h-150 rounded-full bg-emerald-500/20 blur-[130px]" />
-          {/* Secondary Teal Orb */}
-          <Box className="animate-blob-2 absolute top-1/3 -right-32 w-80 h-80 md:w-125 md:h-125 rounded-full bg-teal-500/20 blur-[140px]" />
-          {/* Tertiary Mint Liquid Glow */}
-          <Box className="animate-blob-3 absolute -bottom-20 left-1/3 w-80 h-80 md:w-137.5 md:h-137.5 rounded-full bg-emerald-600/15 blur-[120px]" />
-          {/* Dark Glass Overlay Grid */}
-          <Box
-            className="absolute inset-0 opacity-[0.03]"
-            sx={{
-              backgroundImage: `radial-gradient(rgba(52, 211, 153, 0.4) 1px, transparent 1px)`,
-              backgroundSize: '28px 28px',
-            }}
-          />
-        </Box>
-
-        {/* Liquid Glass Header */}
+      {/* Main Page Canvas */}
+      <div className="min-h-screen bg-[#f7faf9] text-slate-800 flex flex-col">
+        {/* WordPress Header (header.php) */}
         <Navbar
           watchlistCount={watchlist.length}
           onOpenWatchlist={() => setIsWatchlistOpen(true)}
           onResetSearch={handleResetSearch}
           onRandomMovie={handleRandomMovie}
+          onQuickSearch={handleQuickSearch}
+          onSelectType={(type) => setFilters((prev) => ({ ...prev, type: type as any, page: 1 }))}
+          activeType={filters.type}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={handleToggleDarkMode}
+          onOpenExtensionModal={() => setIsExtensionModalOpen(true)}
         />
 
-        {/* Content Body */}
-        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, pt: { xs: 3, md: 5 }, pb: 10 }}>
+        {/* Main Body Container */}
+        <div className="artblog-container flex-1 w-full pt-4">
           {selectedMovieId ? (
-            /* Full-Page Movie / TV Show Details View */
-            <MovieDetailsPage
-              movie={selectedMovieDetails}
-              loading={isDetailsLoading}
-              onBack={handleBackToSearch}
-              isBookmarked={isCurrentMovieBookmarked(selectedMovieId)}
-              onToggleBookmark={(movie) => handleToggleBookmark(null, movie)}
-            />
-          ) : (
-            /* Search & Browse Home View */
-            <>
-              {/* Hero Banner Section */}
-              <Box sx={{ textAlign: 'center', mb: 3 }}>
-                <Typography
-                  variant="h2"
-                  component="h1"
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: { xs: '2.2rem', sm: '3rem', md: '3.8rem' },
-                    letterSpacing: '-0.035em',
-                    lineHeight: 1.15,
-                    background: 'linear-gradient(135deg, #ffffff 0%, #d1fae5 50%, #34d399 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 1.5,
-                  }}
-                >
-                  Discover Cinema with PSA Fetch
-                </Typography>
-
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: '#a7f3d0',
-                    maxWidth: '620px',
-                    mx: 'auto',
-                    fontSize: { xs: '0.95rem', md: '1.1rem' },
-                    lineHeight: 1.6,
-                    opacity: 0.85,
-                  }}
-                >
-                  Instant search across millions of movies, TV shows, and series with comprehensive ratings, seasons, and episode guides.
-                </Typography>
-              </Box>
-
-              {/* Search Bar with Glass Controls */}
-              <SearchBar
-                query={query}
-                onQueryChange={handleQueryChange}
-                filters={filters}
-                onFiltersChange={setFilters}
-                isLoading={isLoading}
-                onQuickSearch={handleQuickSearch}
+            /* Single Post Movie Details View (single.php) */
+            <div className="my-6">
+              <MovieDetailsPage
+                movie={selectedMovieDetails}
+                loading={isDetailsLoading}
+                onBack={handleBackToSearch}
+                isBookmarked={isCurrentMovieBookmarked(selectedMovieId)}
+                onToggleBookmark={(movie) => handleToggleBookmark(null, movie)}
+                onOpenExtensionModal={() => setIsExtensionModalOpen(true)}
               />
+            </div>
+          ) : (
+            /* Home / Blog Archive View (revolution-home.php & index.php) */
+            <>
+              {/* Hero Slider Feature (Only on home when not searching or filtering genre) */}
+              {!debouncedQuery && !selectedGenre && (
+                <ThemeHeroSlider
+                  featuredMovie={featuredMovie}
+                  onSelectMovie={handleSelectMovie}
+                  onExploreClick={() => {
+                    const el = document.getElementById('search-input-area')
+                    el?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                />
+              )}
+
+              {/* Central Search Controls */}
+              <div id="search-input-area" className="my-6">
+                <SearchBar
+                  query={query}
+                  onQueryChange={handleQueryChange}
+                  isLoading={isLoading}
+                  onQuickSearch={handleQuickSearch}
+                />
+              </div>
 
               {/* Error Notice */}
               {errorMessage && (
-                <Box sx={{ maxWidth: '600px', mx: 'auto', mb: 4 }}>
-                  <Alert
-                    severity="info"
-                    sx={{
-                      bgcolor: 'rgba(6, 25, 20, 0.85)',
-                      color: '#a7f3d0',
-                      border: '1px solid rgba(52, 211, 153, 0.3)',
-                      backdropFilter: 'blur(16px)',
-                      borderRadius: '16px',
-                    }}
-                  >
-                    {errorMessage}
-                  </Alert>
-                </Box>
+                <div className="max-w-2xl mx-auto mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2">
+                  <i className="fas fa-exclamation-circle text-red-500"></i>
+                  <span>{errorMessage}</span>
+                </div>
               )}
 
-              {/* Results Grid or Latest Releases Home State */}
-              {movies.length > 0 ? (
-                <Box>
-                  {/* Search Results Header */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#ecfdf5' }}>
-                      Found {totalResults} {totalResults === 1 ? 'Result' : 'Results'} for "{debouncedQuery}"
-                    </Typography>
-                  </Box>
-
-                  {/* Movie Cards Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                    {movies.map((movie) => (
-                      <div key={movie.imdbID} className="h-full">
-                        <MovieCard
-                          movie={movie}
-                          isBookmarked={isCurrentMovieBookmarked(movie.imdbID)}
-                          onToggleBookmark={handleToggleBookmark}
-                          onSelectMovie={() => handleSelectMovie(movie)}
-                        />
+              {/* 2-Column WordPress Layout: Main Feed + Sidebar */}
+              <div className="main-wrapper">
+                {/* Main Content Column (main#primary.lay-width) */}
+                <main id="primary" className="site-main lay-width">
+                  {movies.length > 0 ? (
+                    <div>
+                      {/* Search Results / Genre Header */}
+                      <div className="flex flex-wrap items-center justify-between mb-6 pb-2 border-b border-slate-200 gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2
+                            className="text-xl sm:text-2xl font-normal tracking-wide text-slate-800 m-0 uppercase"
+                            style={{ fontFamily: 'var(--heading-font)' }}
+                          >
+                            {selectedGenre
+                              ? `${selectedGenre.toUpperCase()} TITLES (${totalResults})`
+                              : getSearchCollectionTitle(debouncedQuery)
+                              ? `${getSearchCollectionTitle(debouncedQuery)} (${totalResults})`
+                              : `Found ${totalResults} ${totalResults === 1 ? 'Result' : 'Results'} for "${debouncedQuery}"`}
+                          </h2>
+                          {selectedGenre && (
+                            <span className="bg-teal-100 text-teal-800 text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                              Genre
+                            </span>
+                          )}
+                          {!selectedGenre && getSearchCollectionTitle(debouncedQuery) && (
+                            <span className="bg-teal-100 text-teal-800 text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
+                              <i className="fas fa-sparkles text-[10px]"></i> Curated Universe
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleResetSearch}
+                          className="text-xs font-semibold text-[#58BCB3] hover:underline cursor-pointer"
+                        >
+                          {selectedGenre ? 'Clear Genre Filter' : 'Clear Results'}
+                        </button>
                       </div>
-                    ))}
-                  </div>
 
-                  {/* Load More Button */}
-                  {hasMore && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
-                      <Button
-                        variant="contained"
-                        onClick={handleLoadMore}
-                        disabled={isLoadingMore}
-                        startIcon={isLoadingMore ? <CircularProgress size={18} sx={{ color: '#ffffff' }} /> : <ExpandMoreIcon />}
-                        sx={{
-                          px: 4,
-                          py: 1.4,
-                          fontSize: '0.95rem',
-                          fontWeight: 700,
-                          borderRadius: '16px',
-                        }}
-                      >
-                        {isLoadingMore ? 'Loading More Movies...' : `Load More (${movies.length} of ${totalResults})`}
-                      </Button>
-                    </Box>
-                  )}
-                </Box>
-              ) : !isLoading && !errorMessage ? (
-                /* Latest Movie & Series Releases Grid on Initial Home */
-                <LatestReleasesGrid
-                  filterType={filters.type}
-                  onSelectMovie={handleSelectMovie}
-                  isBookmarked={isCurrentMovieBookmarked}
-                  onToggleBookmark={handleToggleBookmark}
+                      {/* Cards Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        {movies.map((movie) => (
+                          <MovieCard
+                            key={movie.imdbID}
+                            movie={movie}
+                            isBookmarked={isCurrentMovieBookmarked(movie.imdbID)}
+                            onToggleBookmark={handleToggleBookmark}
+                            onSelectMovie={() => handleSelectMovie(movie)}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Load More Button (only for query search) */}
+                      {hasMore && (
+                        <div className="flex justify-center mt-10 mb-4">
+                          <button
+                            type="button"
+                            onClick={handleLoadMore}
+                            disabled={isLoadingMore}
+                            className="bg-[#58BCB3] hover:bg-[#439d95] text-white px-8 py-3 rounded-full font-medium tracking-wide flex items-center gap-2 shadow-md transition disabled:opacity-50"
+                            style={{ fontFamily: 'var(--heading-font)' }}
+                          >
+                            {isLoadingMore ? (
+                              <>
+                                <i className="fas fa-circle-notch fa-spin text-sm"></i>
+                                <span>Loading More...</span>
+                              </>
+                            ) : (
+                              <>
+                                <i className="fas fa-chevron-down text-xs"></i>
+                                <span>Load More ({movies.length} of {totalResults})</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : !isLoading && !errorMessage ? (
+                    /* Latest Movie & Series Releases Grid on Initial Home */
+                    <LatestReleasesGrid
+                      filterType={filters.type}
+                      onSelectMovie={handleSelectMovie}
+                      isBookmarked={isCurrentMovieBookmarked}
+                      onToggleBookmark={handleToggleBookmark}
+                      onFeaturedMovieLoaded={(movie) => {
+                        if (!featuredMovie) setFeaturedMovie(movie)
+                      }}
+                    />
+                  ) : null}
+                </main>
+
+                {/* Sidebar Column (aside#secondary.sidebar-width) */}
+                <ThemeSidebar
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  onQuickSearch={handleQuickSearch}
+                  watchlist={watchlist}
+                  onOpenWatchlist={() => setIsWatchlistOpen(true)}
+                  onSelectMovieId={(id) => {
+                    loadMovieById(id, true)
+                  }}
+                  selectedGenre={selectedGenre}
+                  onSelectGenre={handleSelectGenre}
+                  onOpenExtensionModal={() => setIsExtensionModalOpen(true)}
                 />
-              ) : null}
+              </div>
             </>
           )}
-        </Container>
+        </div>
+
+        {/* WordPress Theme Footer (footer.php) */}
+        <ThemeFooter
+          onQuickSearch={handleQuickSearch}
+          onResetSearch={handleResetSearch}
+          onSelectGenre={handleSelectGenre}
+          onOpenExtensionModal={() => setIsExtensionModalOpen(true)}
+        />
 
         {/* Watchlist Slide-out Drawer */}
         <WatchlistDrawer
@@ -401,7 +674,18 @@ export default function App() {
           onClearAll={handleClearWatchlist}
           onSelectMovie={handleSelectMovie}
         />
-      </Box>
+
+        {/* Browser Extension Download Modal */}
+        <ExtensionModal
+          open={isExtensionModalOpen}
+          onClose={() => setIsExtensionModalOpen(false)}
+        />
+
+        {/* Floating Extension Action Button (Bottom Right) */}
+        <FloatingExtensionButton
+          onOpen={() => setIsExtensionModalOpen(true)}
+        />
+      </div>
     </ThemeProvider>
   )
 }

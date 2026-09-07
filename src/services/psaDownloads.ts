@@ -9,18 +9,13 @@ function decodeHtmlEntities(str: string): string {
     .replace(/&#39;/g, "'")
 }
 
-function cleanSearchQuery(title: string): string {
-  return title
-    .replace(/['']s\b/gi, '') // Remove possessives like 's so "Zack Snyder's" -> "Zack Snyder"
-    .replace(/[^a-zA-Z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
 
 function normalizeTitle(s: string): string {
   return s
     .toLowerCase()
     .replace(/['']s\b/gi, '')
+    .replace(/\band\b/gi, ' ') // treat 'and' and '&' as equivalent to space
+    .replace(/&/g, ' ')
     .replace(/[^a-z0-9]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
@@ -35,6 +30,7 @@ function matchesMovieTitle(torrentTitle: string, targetTitle: string, targetYear
   }
 
   const normTarget = normalizeTitle(targetTitle)
+  const normTargetNoThe = normTarget.replace(/^the\s+/i, '')
 
   // If 4-digit year is provided, ensure the torrent year matches
   if (targetYear && /^\d{4}$/.test(targetYear.trim())) {
@@ -56,7 +52,7 @@ function matchesMovieTitle(torrentTitle: string, targetTitle: string, targetYear
   if (yearMatch && yearMatch.index !== undefined && yearMatch.index > 0) {
     prefix = decodedTorrent.slice(0, yearMatch.index)
   } else {
-    const resMatch = decodedTorrent.match(/\b(2160p|1080p|720p|480p|bluray|web-?dl)\b/i)
+    const resMatch = decodedTorrent.match(/\b(2160p|1080p|720p|480p|bluray|web-?dl|webrip|hdr)\b/i)
     if (resMatch && resMatch.index !== undefined && resMatch.index > 0) {
       prefix = decodedTorrent.slice(0, resMatch.index)
     }
@@ -65,9 +61,21 @@ function matchesMovieTitle(torrentTitle: string, targetTitle: string, targetYear
   // Clean prefix from uploader headers
   prefix = prefix.replace(/^www\.[^\s]+\s*-\s*/i, '')
   const normPrefix = normalizeTitle(prefix)
+  const normPrefixNoThe = normPrefix.replace(/^the\s+/i, '')
 
   if (normPrefix === normTarget) return true
+  if (normPrefixNoThe === normTargetNoThe) return true
   if (normPrefix.replace(/\s+/g, '') === normTarget.replace(/\s+/g, '')) return true
+  if (normPrefixNoThe.replace(/\s+/g, '') === normTargetNoThe.replace(/\s+/g, '')) return true
+
+  // Check prefix before subtitle colon/dash in target
+  const targetSubMatch = targetTitle.match(/[:\-–—]/)
+  if (targetSubMatch) {
+    const mainTarget = normalizeTitle(targetTitle.slice(0, targetSubMatch.index))
+    if (mainTarget && (normPrefix === mainTarget || normPrefix.replace(/\s+/g, '') === mainTarget.replace(/\s+/g, ''))) {
+      return true
+    }
+  }
 
   return false
 }
@@ -75,6 +83,7 @@ function matchesMovieTitle(torrentTitle: string, targetTitle: string, targetYear
 function matchesShowTitle(torrentTitle: string, targetShow: string, epCode: string): boolean {
   const decodedTorrent = decodeHtmlEntities(torrentTitle)
   const normTarget = normalizeTitle(targetShow)
+  const normTargetNoThe = normTarget.replace(/^the\s+/i, '')
 
   // Must match the episode code in the torrent title (e.g. S01E01)
   const epRegex = new RegExp('\\b' + epCode + '\\b', 'i')
@@ -89,11 +98,22 @@ function matchesShowTitle(torrentTitle: string, targetShow: string, epCode: stri
   // Remove release year (e.g. 2019, 2020) and non-alphanumeric chars
   prefix = prefix.replace(/\b(19|20)\d{2}\b/g, '')
   const normPrefix = normalizeTitle(prefix)
+  const normPrefixNoThe = normPrefix.replace(/^the\s+/i, '')
 
   if (normPrefix === normTarget) return true
+  if (normPrefixNoThe === normTargetNoThe) return true
+  if (normPrefix.replace(/\s+/g, '') === normTarget.replace(/\s+/g, '')) return true
+  if (normPrefixNoThe.replace(/\s+/g, '') === normTargetNoThe.replace(/\s+/g, '')) return true
 
-  // Strip all spaces to compare compressed tokens (e.g. 'theboys' === 'theboys')
-  return normPrefix.replace(/\s+/g, '') === normTarget.replace(/\s+/g, '')
+  const targetSubMatch = targetShow.match(/[:\-–—]/)
+  if (targetSubMatch) {
+    const mainTarget = normalizeTitle(targetShow.slice(0, targetSubMatch.index))
+    if (mainTarget && (normPrefix === mainTarget || normPrefix.replace(/\s+/g, '') === mainTarget.replace(/\s+/g, ''))) {
+      return true
+    }
+  }
+
+  return false
 }
 
 function parseRssXml(xmlText: string): PsaDownloadItem[] {
@@ -217,35 +237,51 @@ async function executeRssQuery(searchQuery: string): Promise<PsaDownloadItem[]> 
 }
 
 export async function fetchPsaDownloads(movieTitle: string, movieYear?: string): Promise<PsaDownloadItem[]> {
-  const cleanTitle = cleanSearchQuery(movieTitle)
-  if (!cleanTitle) return []
+  if (!movieTitle || !movieTitle.trim()) return []
 
   const cleanYear = movieYear && /^\d{4}$/.test(movieYear.trim()) ? movieYear.trim() : ''
 
-  // 1. First attempt with clean title & exact Year: e.g. "Zack Snyder Justice League 2021 psa"
+  // Build title variants to search (handling '&' vs 'and', punctuation, subtitles)
+  const variants: string[] = []
+
+  const baseClean = movieTitle.replace(/['']s\b/gi, '').replace(/[^a-zA-Z0-9\s&]/g, ' ').replace(/\s+/g, ' ').trim()
+  variants.push(baseClean)
+
+  const withAnd = baseClean.replace(/&/g, 'and').replace(/\s+/g, ' ').trim()
+  if (withAnd !== baseClean) variants.push(withAnd)
+
+  const withoutAnd = baseClean.replace(/&|\band\b/gi, ' ').replace(/\s+/g, ' ').trim()
+  if (withoutAnd !== baseClean && withoutAnd !== withAnd) variants.push(withoutAnd)
+
+  // Prefix before subtitle
+  const primaryTitle = movieTitle
+    .replace(/[:\-–—].*$/, '')
+    .replace(/['']s\b/gi, '')
+    .replace(/[^a-zA-Z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (primaryTitle && !variants.includes(primaryTitle)) {
+    variants.push(primaryTitle)
+  }
+
+  const uniqueVariants = Array.from(new Set(variants.filter(Boolean)))
+
+  // 1. Try search with release Year
   if (cleanYear) {
-    const queryWithYear = `${cleanTitle} ${cleanYear} psa`
-    const results = await executeRssQuery(queryWithYear)
-    const filtered = results.filter((item) => matchesMovieTitle(item.title, movieTitle, cleanYear))
-    if (filtered.length > 0) {
-      return filtered
+    for (const variant of uniqueVariants) {
+      const qWithYear = `${variant} ${cleanYear} psa`
+      const results = await executeRssQuery(qWithYear)
+      const filtered = results.filter((item) => matchesMovieTitle(item.title, movieTitle, cleanYear))
+      if (filtered.length > 0) return filtered
     }
   }
 
-  // 2. Second attempt with clean title without Year: e.g. "Zack Snyder Justice League psa"
-  const queryWithoutYear = `${cleanTitle} psa`
-  const results = await executeRssQuery(queryWithoutYear)
-  const filtered = results.filter((item) => matchesMovieTitle(item.title, movieTitle, cleanYear))
-  if (filtered.length > 0) {
-    return filtered
-  }
-
-  // 3. Third attempt with literal alphanumeric title if needed: e.g. "Zack Snyders Justice League 2021 psa"
-  const literalTitle = movieTitle.replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
-  if (literalTitle !== cleanTitle) {
-    const literalQuery = cleanYear ? `${literalTitle} ${cleanYear} psa` : `${literalTitle} psa`
-    const litResults = await executeRssQuery(literalQuery)
-    return litResults.filter((item) => matchesMovieTitle(item.title, movieTitle, cleanYear))
+  // 2. Try search without release Year
+  for (const variant of uniqueVariants) {
+    const qNoYear = `${variant} psa`
+    const results = await executeRssQuery(qNoYear)
+    const filtered = results.filter((item) => matchesMovieTitle(item.title, movieTitle, cleanYear))
+    if (filtered.length > 0) return filtered
   }
 
   return []
@@ -257,8 +293,7 @@ export async function fetchPsaEpisodeDownloads(
   episode: number | string,
   year?: string
 ): Promise<PsaDownloadItem[]> {
-  const cleanTitle = cleanSearchQuery(showTitle)
-  if (!cleanTitle) return []
+  if (!showTitle || !showTitle.trim()) return []
 
   const sNum = parseInt(season.toString(), 10) || 1
   const eNum = parseInt(episode.toString(), 10) || 1
@@ -266,21 +301,47 @@ export async function fetchPsaEpisodeDownloads(
   const padE = eNum.toString().padStart(2, '0')
   const epCode = `S${padS}E${padE}`
 
-  // Clean 4-digit release year if present
   const cleanYear = year && /^\d{4}$/.test(year.trim()) ? year.trim() : ''
 
-  // 1. First attempt with Year if provided: e.g. "The Boys 2019 S01E01 PSA"
+  const variants: string[] = []
+  const baseClean = showTitle.replace(/['']s\b/gi, '').replace(/[^a-zA-Z0-9\s&]/g, ' ').replace(/\s+/g, ' ').trim()
+  variants.push(baseClean)
+
+  const withAnd = baseClean.replace(/&/g, 'and').replace(/\s+/g, ' ').trim()
+  if (withAnd !== baseClean) variants.push(withAnd)
+
+  const withoutAnd = baseClean.replace(/&|\band\b/gi, ' ').replace(/\s+/g, ' ').trim()
+  if (withoutAnd !== baseClean && withoutAnd !== withAnd) variants.push(withoutAnd)
+
+  const primaryTitle = showTitle
+    .replace(/[:\-–—].*$/, '')
+    .replace(/['']s\b/gi, '')
+    .replace(/[^a-zA-Z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (primaryTitle && !variants.includes(primaryTitle)) {
+    variants.push(primaryTitle)
+  }
+
+  const uniqueVariants = Array.from(new Set(variants.filter(Boolean)))
+
+  // 1. Try search with release Year
   if (cleanYear) {
-    const queryWithYear = `${cleanTitle} ${cleanYear} ${epCode} PSA`
-    const results = await executeRssQuery(queryWithYear)
-    const filtered = results.filter((item) => matchesShowTitle(item.title, showTitle, epCode))
-    if (filtered.length > 0) {
-      return filtered
+    for (const variant of uniqueVariants) {
+      const qWithYear = `${variant} ${cleanYear} ${epCode} PSA`
+      const results = await executeRssQuery(qWithYear)
+      const filtered = results.filter((item) => matchesShowTitle(item.title, showTitle, epCode))
+      if (filtered.length > 0) return filtered
     }
   }
 
-  // 2. Second attempt without Year: e.g. "The Boys S01E01 PSA"
-  const queryWithoutYear = `${cleanTitle} ${epCode} PSA`
-  const results = await executeRssQuery(queryWithoutYear)
-  return results.filter((item) => matchesShowTitle(item.title, showTitle, epCode))
+  // 2. Try search without release Year
+  for (const variant of uniqueVariants) {
+    const qNoYear = `${variant} ${epCode} PSA`
+    const results = await executeRssQuery(qNoYear)
+    const filtered = results.filter((item) => matchesShowTitle(item.title, showTitle, epCode))
+    if (filtered.length > 0) return filtered
+  }
+
+  return []
 }
