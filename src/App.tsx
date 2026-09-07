@@ -13,6 +13,8 @@ import { ThemeFooter } from './components/ThemeFooter'
 import { MovieDetailsPage } from './components/MovieDetailsPage'
 import { WatchlistDrawer } from './components/WatchlistDrawer'
 import { LatestReleasesGrid } from './components/LatestReleasesGrid'
+import { ExtensionModal } from './components/ExtensionModal'
+import { FloatingExtensionButton } from './components/FloatingExtensionButton'
 import {
   searchMovies,
   getMovieDetails,
@@ -126,6 +128,7 @@ export default function App() {
     }
   })
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false)
+  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false)
 
   // Dark Mode State powered by DarkReader
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -494,6 +497,7 @@ export default function App() {
           activeType={filters.type}
           isDarkMode={isDarkMode}
           onToggleDarkMode={handleToggleDarkMode}
+          onOpenExtensionModal={() => setIsExtensionModalOpen(true)}
         />
 
         {/* Main Body Container */}
@@ -507,6 +511,7 @@ export default function App() {
                 onBack={handleBackToSearch}
                 isBookmarked={isCurrentMovieBookmarked(selectedMovieId)}
                 onToggleBookmark={(movie) => handleToggleBookmark(null, movie)}
+                onOpenExtensionModal={() => setIsExtensionModalOpen(true)}
               />
             </div>
           ) : (
@@ -645,6 +650,7 @@ export default function App() {
                   }}
                   selectedGenre={selectedGenre}
                   onSelectGenre={handleSelectGenre}
+                  onOpenExtensionModal={() => setIsExtensionModalOpen(true)}
                 />
               </div>
             </>
@@ -656,6 +662,7 @@ export default function App() {
           onQuickSearch={handleQuickSearch}
           onResetSearch={handleResetSearch}
           onSelectGenre={handleSelectGenre}
+          onOpenExtensionModal={() => setIsExtensionModalOpen(true)}
         />
 
         {/* Watchlist Slide-out Drawer */}
@@ -666,6 +673,17 @@ export default function App() {
           onRemoveItem={handleRemoveWatchlistItem}
           onClearAll={handleClearWatchlist}
           onSelectMovie={handleSelectMovie}
+        />
+
+        {/* Browser Extension Download Modal */}
+        <ExtensionModal
+          open={isExtensionModalOpen}
+          onClose={() => setIsExtensionModalOpen(false)}
+        />
+
+        {/* Floating Extension Action Button (Bottom Right) */}
+        <FloatingExtensionButton
+          onOpen={() => setIsExtensionModalOpen(true)}
         />
       </div>
     </ThemeProvider>

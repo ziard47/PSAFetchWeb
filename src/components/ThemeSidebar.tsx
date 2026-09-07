@@ -10,6 +10,7 @@ interface ThemeSidebarProps {
   onSelectMovieId?: (imdbID: string) => void
   selectedGenre?: string | null
   onSelectGenre?: (genre: string) => void
+  onOpenExtensionModal?: () => void
 }
 
 const POPULAR_GENRES = [
@@ -35,6 +36,7 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
   onSelectMovieId,
   selectedGenre,
   onSelectGenre,
+  onOpenExtensionModal,
 }) => {
   const handleTypeSelect = (type: SearchFilters['type']) => {
     onFiltersChange({
@@ -144,7 +146,65 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
         </button>
       </div>
 
-      {/* Widget 4: About PSA Fetch */}
+      {/* Widget 4: Browser Extension Promotion */}
+      <div className="widget widget_text bg-gradient-to-br from-teal-50/80 via-white to-teal-50/50 border-2 border-teal-200/70 rounded-2xl p-4 sm:p-5 shadow-xs">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-teal-100 text-[#439d95] flex items-center justify-center text-xs">
+              <i className="fas fa-puzzle-piece"></i>
+            </div>
+            <h2 className="widget-title m-0 text-base font-bold text-slate-800" style={{ fontFamily: 'var(--heading-font)' }}>
+              PSA GRABBER
+            </h2>
+          </div>
+          <span className="bg-[#58BCB3] text-white text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full">
+            v2.1.3
+          </span>
+        </div>
+
+        <p className="text-xs text-slate-600 leading-relaxed mb-3">
+          Grab all magnet links directly inside the PSA Rips website without redirects, ads, or manual copy-pasting.
+        </p>
+
+        <div className="space-y-2 mb-3">
+          <a
+            href="https://microsoftedge.microsoft.com/addons/detail/psa-fetch/dbadhpofhkkhlckegioamnamkhbcgpcj"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-2 px-3 rounded-xl bg-white hover:bg-sky-50 text-slate-800 border border-slate-200 hover:border-sky-300 text-xs font-bold flex items-center justify-between transition shadow-2xs group"
+          >
+            <div className="flex items-center gap-2">
+              <i className="fab fa-edge text-sky-600 text-sm"></i>
+              <span>Microsoft Edge Store</span>
+            </div>
+            <i className="fas fa-arrow-up-right-from-square text-[10px] text-slate-400 group-hover:text-sky-600"></i>
+          </a>
+
+          <a
+            href="https://github.com/ziard47/PSA-Grabber/releases/tag/release-v2.1.3"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold flex items-center justify-between transition shadow-2xs group"
+          >
+            <div className="flex items-center gap-2">
+              <i className="fab fa-chrome text-amber-400 text-sm"></i>
+              <span>Chrome & Chromium</span>
+            </div>
+            <i className="fab fa-github text-xs text-slate-300"></i>
+          </a>
+        </div>
+
+        <button
+          type="button"
+          onClick={onOpenExtensionModal}
+          className="w-full py-2 px-3 rounded-xl bg-[#58BCB3]/15 hover:bg-[#58BCB3]/25 text-[#147a70] text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+        >
+          <i className="fas fa-info-circle text-xs"></i>
+          <span>How to Install / Details</span>
+        </button>
+      </div>
+
+      {/* Widget 5: About PSA Fetch */}
       <div className="widget widget_text">
         <h2 className="widget-title">
           <i className="fas fa-info-circle text-[#58BCB3] text-sm"></i>

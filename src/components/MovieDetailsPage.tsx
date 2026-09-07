@@ -25,6 +25,7 @@ interface MovieDetailsPageProps {
   onBack: () => void
   isBookmarked: boolean
   onToggleBookmark: (movie: MovieSummary) => void
+  onOpenExtensionModal?: () => void
 }
 
 export const MovieDetailsPage: React.FC<MovieDetailsPageProps> = ({
@@ -33,6 +34,7 @@ export const MovieDetailsPage: React.FC<MovieDetailsPageProps> = ({
   onBack,
   isBookmarked,
   onToggleBookmark,
+  onOpenExtensionModal,
 }) => {
   const [posterError, setPosterError] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
@@ -474,7 +476,13 @@ export const MovieDetailsPage: React.FC<MovieDetailsPageProps> = ({
       </article>
 
       {/* Movie PSA Downloads Section (Only for Feature Films) */}
-      {!isSeries && <PsaDownloadsSection movieTitle={movie.Title} year={movie.Year} />}
+      {!isSeries && (
+        <PsaDownloadsSection
+          movieTitle={movie.Title}
+          year={movie.Year}
+          onOpenExtensionModal={onOpenExtensionModal}
+        />
+      )}
 
       {/* TV Series Seasons & Episodes Section */}
       {isSeries && (
@@ -745,6 +753,7 @@ export const MovieDetailsPage: React.FC<MovieDetailsPageProps> = ({
                   season={selectedEpisode.Season || selectedSeason}
                   episode={selectedEpisode.Episode}
                   year={movie.Year}
+                  onOpenExtensionModal={onOpenExtensionModal}
                 />
               </div>
             </div>

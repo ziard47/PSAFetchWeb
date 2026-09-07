@@ -11,6 +11,7 @@ interface NavbarProps {
   activeType?: string
   isDarkMode?: boolean
   onToggleDarkMode?: () => void
+  onOpenExtensionModal?: () => void
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -23,6 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeType = '',
   isDarkMode = false,
   onToggleDarkMode,
+  onOpenExtensionModal,
 }) => {
   const [headerSearchQuery, setHeaderSearchQuery] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -136,7 +138,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={onToggleDarkMode}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer active:scale-95"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer active:scale-95 shrink-0"
                 title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 aria-label="Toggle dark mode"
               >
@@ -302,8 +304,23 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </div>
 
-              {/* Watchlist Shortcut & Theme Mode Toggle */}
+              {/* Watchlist Shortcut & Extension & Theme Mode Toggle */}
               <div className="pt-1 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => handleNavClick(() => onOpenExtensionModal?.())}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-[#58BCB3] text-white text-xs font-bold shadow-2xs cursor-pointer active:scale-98 transition"
+                  style={{ fontFamily: 'var(--heading-font)' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <i className="fas fa-puzzle-piece text-white"></i>
+                    <span>PSA Grabber Extension (Edge / Chrome)</span>
+                  </div>
+                  <span className="bg-white/25 text-white px-2 py-0.5 rounded-md text-[10px] font-bold">
+                    v2.1.3
+                  </span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => handleNavClick(onOpenWatchlist)}

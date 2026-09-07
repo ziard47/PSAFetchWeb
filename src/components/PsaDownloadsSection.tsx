@@ -24,6 +24,7 @@ interface PsaDownloadsSectionProps {
   season?: number | string
   episode?: number | string
   year?: string
+  onOpenExtensionModal?: () => void
 }
 
 export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
@@ -33,6 +34,7 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
   season,
   episode,
   year,
+  onOpenExtensionModal,
 }) => {
   const [downloads, setDownloads] = useState<PsaDownloadItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -347,6 +349,32 @@ export const PsaDownloadsSection: React.FC<PsaDownloadsSectionProps> = ({
           </Typography>
         </Box>
       )}
+
+      {/* PSA Grabber Extension Tip Banner */}
+      <div className="mt-4 pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 bg-teal-50/50 p-3 sm:p-3.5 rounded-xl border border-teal-100">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-teal-100 text-[#439d95] flex items-center justify-center shrink-0">
+            <i className="fas fa-puzzle-piece text-xs"></i>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-800 m-0">
+              Browsing PSA Rips website directly?
+            </p>
+            <p className="text-[11px] text-slate-500 m-0">
+              Get our official <strong>PSA Grabber Extension</strong> for Microsoft Edge & Chrome to grab all magnet links instantly.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onOpenExtensionModal}
+          className="bg-[#58BCB3] hover:bg-[#439d95] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase shadow-2xs transition shrink-0 active:scale-95 cursor-pointer"
+          style={{ fontFamily: 'var(--heading-font)' }}
+        >
+          Get Extension
+        </button>
+      </div>
 
       {/* Snackbar Copy Feedback */}
       <Snackbar

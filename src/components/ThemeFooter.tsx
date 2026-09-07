@@ -4,12 +4,14 @@ interface ThemeFooterProps {
   onQuickSearch?: (term: string) => void
   onResetSearch?: () => void
   onSelectGenre?: (genre: string) => void
+  onOpenExtensionModal?: () => void
 }
 
 export const ThemeFooter: React.FC<ThemeFooterProps> = ({
   onQuickSearch,
   onResetSearch,
   onSelectGenre,
+  onOpenExtensionModal,
 }) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -26,11 +28,21 @@ export const ThemeFooter: React.FC<ThemeFooterProps> = ({
               <p className="mb-3">
                 Your premier media indexer for cinema, series, and high-efficiency encodes. Featuring verified releases, episode guides, and real-time IMDb data.
               </p>
-              <div className="text-sm text-slate-400">
+              <div className="text-sm text-slate-400 space-y-2">
                 <p className="m-0">
                   <i className="fas fa-shield-alt text-[#58BCB3] mr-2"></i>
                   Safe, light, and optimized for all devices.
                 </p>
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={onOpenExtensionModal}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#58BCB3]/20 hover:bg-[#58BCB3] text-[#58BCB3] hover:text-white border border-[#58BCB3]/40 text-xs font-bold transition cursor-pointer"
+                  >
+                    <i className="fas fa-puzzle-piece"></i>
+                    <span>Get PSA Grabber Extension (v2.1.3)</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -65,6 +77,12 @@ export const ThemeFooter: React.FC<ThemeFooterProps> = ({
                   <button type="button" onClick={onResetSearch}>
                     <i className="fas fa-home text-[#58BCB3]"></i>
                     <span>Home & Latest Releases</span>
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={onOpenExtensionModal}>
+                    <i className="fas fa-puzzle-piece text-[#58BCB3]"></i>
+                    <span>PSA Grabber Browser Extension</span>
                   </button>
                 </li>
                 <li>
