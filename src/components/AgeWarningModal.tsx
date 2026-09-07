@@ -130,7 +130,7 @@ export const AgeWarningModal: React.FC<AgeWarningModalProps> = ({
               className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold tracking-wider uppercase transition active:scale-98 cursor-pointer"
               style={{ fontFamily: 'var(--heading-font)' }}
             >
-              Exit / Go Back
+              Go Back
             </button>
           </div>
         </div>

@@ -437,6 +437,46 @@ export async function getMovieDetails(id: string): Promise<MovieDetails | null> 
     }
   }
 
+  // If it's an Adult custom ID
+  if (id.startsWith('adult-')) {
+    if (adultDetailsCache.has(id)) {
+      return adultDetailsCache.get(id)!
+    }
+    const rawSearch = id.replace('adult-', '').replace(/-/g, ' ').trim()
+    const cleanWords = rawSearch
+      .split(' ')
+      .map((w) => (w.length > 0 ? w.charAt(0).toUpperCase() + w.slice(1) : ''))
+      .join(' ')
+      .trim()
+
+    const fallbackDetails: MovieDetails = {
+      Title: cleanWords || 'Adult Media Release',
+      Year: '2026',
+      Rated: '18+',
+      Released: 'Recent',
+      Runtime: 'N/A',
+      Genre: 'Adult, 18+, Mature',
+      Director: 'Adult Studio Encoders',
+      Writer: 'Adult Studio Encoders',
+      Actors: 'Verified Adult Cast',
+      Plot: `Official verified 18+ adult release for "${cleanWords || 'this title'}". Download direct magnet links below in 720p/1080p high-efficiency formats.`,
+      Language: 'English',
+      Country: 'USA',
+      Awards: 'N/A',
+      Poster: `https://images.metahub.space/poster/medium/${id}/img`,
+      Ratings: [{ Source: 'Rating', Value: '18+' }],
+      Metascore: 'N/A',
+      imdbRating: 'N/A',
+      imdbVotes: 'N/A',
+      imdbID: id,
+      Type: 'movie',
+      Response: 'True',
+    }
+    adultDetailsCache.set(id, fallbackDetails)
+    memoryCache.set(cacheKey, fallbackDetails)
+    return fallbackDetails
+  }
+
   // If it's a PSA fallback ID
   if (id.startsWith('psa-')) {
     const rawSearch = id.replace('psa-', '').replace(/-/g, ' ').trim()
@@ -817,8 +857,139 @@ export async function fetchLatestReleases(): Promise<MovieSummary[]> {
   return []
 }
 
+const adultDetailsCache = new Map<string, MovieDetails>()
+
+const CURATED_ADULT_COLLECTION: MovieSummary[] = [
+  { imdbID: 'tt10886166', Title: '365 Days (365 Dni)', Year: '2020', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt10886166/img' },
+  { imdbID: 'tt14674086', Title: '365 Days: This Day', Year: '2022', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt14674086/img' },
+  { imdbID: 'tt21106646', Title: 'The Next 365 Days', Year: '2022', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt21106646/img' },
+  { imdbID: 'tt2322441', Title: 'Fifty Shades of Grey', Year: '2015', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt2322441/img' },
+  { imdbID: 'tt4465564', Title: 'Fifty Shades Darker', Year: '2017', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt4465564/img' },
+  { imdbID: 'tt4477536', Title: 'Fifty Shades Freed', Year: '2018', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt4477536/img' },
+  { imdbID: 'tt1937390', Title: 'Nymphomaniac: Vol. I', Year: '2013', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt1937390/img' },
+  { imdbID: 'tt2820792', Title: 'Nymphomaniac: Vol. II', Year: '2013', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt2820792/img' },
+  { imdbID: 'tt3774694', Title: 'Love', Year: '2015', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt3774694/img' },
+  { imdbID: 'tt0120663', Title: 'Eyes Wide Shut', Year: '1999', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0120663/img' },
+  { imdbID: 'tt0103772', Title: 'Basic Instinct', Year: '1992', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0103772/img' },
+  { imdbID: 'tt0309987', Title: 'The Dreamers', Year: '2003', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0309987/img' },
+  { imdbID: 'tt2278871', Title: 'Blue Is the Warmest Color', Year: '2013', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt2278871/img' },
+  { imdbID: 'tt4016934', Title: 'The Handmaiden', Year: '2016', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt4016934/img' },
+  { imdbID: 'tt0274812', Title: 'Secretary', Year: '2002', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0274812/img' },
+  { imdbID: 'tt0100931', Title: 'Wild Orchid', Year: '1989', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0100931/img' },
+  { imdbID: 'tt0080491', Title: 'Caligula', Year: '1979', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0080491/img' },
+  { imdbID: 'tt0457492', Title: 'Shortbus', Year: '2006', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0457492/img' },
+  { imdbID: 'tt0115964', Title: 'Crash', Year: '1996', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0115964/img' },
+  { imdbID: 'tt0252866', Title: 'Unfaithful', Year: '2002', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0252866/img' },
+  { imdbID: 'tt0204709', Title: 'Original Sin', Year: '2001', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0204709/img' },
+  { imdbID: 'tt1352824', Title: 'Chloe', Year: '2009', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt1352824/img' },
+  { imdbID: 'tt0104740', Title: 'Bitter Moon', Year: '1992', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0104740/img' },
+  { imdbID: 'tt0104046', Title: 'Damage', Year: '1992', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0104046/img' },
+  { imdbID: 'tt0102175', Title: 'The Lover', Year: '1992', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0102175/img' },
+  { imdbID: 'tt0071464', Title: 'Emmanuelle', Year: '1974', Type: 'movie', Poster: 'https://images.metahub.space/poster/medium/tt0071464/img' },
+]
+
+function cleanAdultTitle(rawName: string): { title: string; year: string } {
+  let s = decodeHtmlEntities(rawName || '')
+  const yearMatch = s.match(/\b(19|20)\d{2}\b/)
+  const year = yearMatch ? yearMatch[0] : '2026'
+
+  s = s.replace(/\[[^\]]*\]/g, ' ')
+  s = s.replace(/\([^\)]*\)/g, ' ')
+  s = s.replace(/\b(XXX|WEB-DL|WEBRip|1080p|720p|1440p|2160p|4k|MP4|MKV|x264|x265|HEVC|SPLIT|SCENES|COMPLETE|P2P|XC)\b.*/i, '')
+  s = s.replace(/[._]/g, ' ')
+  s = s.replace(/[^a-zA-Z0-9\s'-]/g, ' ')
+  s = s.replace(/\s+/g, ' ').trim()
+
+  return { title: s || rawName.slice(0, 40), year }
+}
+
+async function fetchLiveAdultScrape(): Promise<MovieSummary[]> {
+  const items: MovieSummary[] = []
+  const sources = [
+    'https://apibay.org/precompiled/data_top100_501.json',
+    'https://apibay.org/precompiled/data_top100_505.json',
+    'https://apibay.org/precompiled/data_top100_500.json',
+  ]
+
+  for (const source of sources) {
+    try {
+      // 1. Try local dev/CF proxy if in browser
+      let data: any[] | null = null
+      const proxyPath = `/api/apibay/${source.replace('https://apibay.org/', '')}`
+      try {
+        const res = await fetch(proxyPath, { signal: AbortSignal.timeout(3500) })
+        if (res.ok) data = await res.json()
+      } catch {
+        // Continue
+      }
+
+      if (!data || !Array.isArray(data)) {
+        try {
+          const directRes = await fetch(source, { signal: AbortSignal.timeout(3500) })
+          if (directRes.ok) data = await directRes.json()
+        } catch {
+          // Continue
+        }
+      }
+
+      if (Array.isArray(data)) {
+        for (const raw of data) {
+          if (!raw || raw.id === '0' || !raw.name) continue
+          const { title, year } = cleanAdultTitle(raw.name)
+          if (!title || title.length < 3) continue
+
+          const customId = raw.imdb && raw.imdb.startsWith('tt') ? raw.imdb : `adult-${raw.id || raw.info_hash}`
+          if (items.some((it) => it.imdbID === customId || it.Title.toLowerCase() === title.toLowerCase())) {
+            continue
+          }
+
+          const summary: MovieSummary = {
+            imdbID: customId,
+            Title: title,
+            Year: year,
+            Type: 'movie',
+            Poster: raw.imdb && raw.imdb.startsWith('tt')
+              ? `https://images.metahub.space/poster/medium/${raw.imdb}/img`
+              : `https://images.metahub.space/poster/medium/adult-${raw.id}/img`,
+          }
+
+          adultDetailsCache.set(customId, {
+            Title: title,
+            Year: year,
+            Rated: '18+',
+            Released: year,
+            Runtime: 'N/A',
+            Genre: 'Adult, 18+, Mature',
+            Director: 'Adult Studio',
+            Writer: 'Adult Studio',
+            Actors: 'Verified Adult Cast',
+            Plot: `Official verified 18+ adult release for "${title}". Direct magnet download available in HD 720p/1080p formats.`,
+            Language: 'English',
+            Country: 'USA',
+            Awards: 'N/A',
+            Poster: summary.Poster,
+            Ratings: [{ Source: 'Rating', Value: '18+' }],
+            Metascore: 'N/A',
+            imdbRating: 'N/A',
+            imdbVotes: 'N/A',
+            imdbID: customId,
+            Type: 'movie',
+            Response: 'True',
+          })
+
+          items.push(summary)
+        }
+      }
+    } catch {
+      // Continue to next dataset
+    }
+  }
+
+  return items
+}
+
 /**
- * Fetches actual movies and series by genre from the Cinemeta catalog
+ * Fetches actual movies and series by genre from the Cinemeta catalog + Adult multi-source scraping
  */
 export async function fetchMoviesByGenre(
   genre: string,
@@ -827,23 +998,79 @@ export async function fetchMoviesByGenre(
   const cleanGenre = genre.trim()
   if (!cleanGenre) return { movies: [], totalResults: 0 }
 
-  const cacheKey = `genre:${cleanGenre}:${type}`
+  const cacheKey = `genre:${cleanGenre.toLowerCase()}:${type}`
   if (memoryCache.has(cacheKey)) {
     return memoryCache.get(cacheKey)
   }
 
   const results: MovieSummary[] = []
 
+  // Special Handling for Adult Category: Merge Curated Classics, Cinemeta, and Live Scrapes
+  if (cleanGenre.toLowerCase() === 'adult') {
+    // 1. Add curated cinema classics
+    for (const c of CURATED_ADULT_COLLECTION) {
+      if (!results.some((r) => r.imdbID === c.imdbID)) {
+        results.push(c)
+      }
+    }
+
+    // 2. Add Cinemeta Adult metas
+    try {
+      const cRes = await fetch('https://v3-cinemeta.strem.io/catalog/movie/top/genre=Adult.json', {
+        signal: AbortSignal.timeout(4000),
+      })
+      if (cRes.ok) {
+        const cData = await cRes.json()
+        if (cData && Array.isArray(cData.metas)) {
+          for (const m of cData.metas) {
+            const mid = m.imdb_id || m.id
+            if (mid && !results.some((r) => r.imdbID === mid)) {
+              results.push({
+                imdbID: mid,
+                Title: m.name,
+                Year: m.releaseInfo || m.year || 'N/A',
+                Type: 'movie',
+                Poster: m.poster || `https://images.metahub.space/poster/medium/${mid}/img`,
+              })
+            }
+          }
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 3. Add live scraped top adult titles
+    const liveItems = await fetchLiveAdultScrape()
+    for (const item of liveItems) {
+      if (!results.some((r) => r.imdbID === item.imdbID || r.Title.toLowerCase() === item.Title.toLowerCase())) {
+        results.push(item)
+      }
+    }
+
+    const filtered = type ? results.filter((r) => r.Type.toLowerCase() === type.toLowerCase()) : results
+    const searchResult: SearchResult = {
+      movies: filtered,
+      totalResults: filtered.length,
+    }
+    memoryCache.set(cacheKey, searchResult)
+    return searchResult
+  }
+
   const fetchMoviePromise =
     type === '' || type === 'movie'
-      ? fetch(`https://v3-cinemeta.strem.io/catalog/movie/top/genre=${encodeURIComponent(cleanGenre)}.json`)
+      ? fetch(`https://v3-cinemeta.strem.io/catalog/movie/top/genre=${encodeURIComponent(cleanGenre)}.json`, {
+          signal: AbortSignal.timeout(4000),
+        })
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null)
       : Promise.resolve(null)
 
   const fetchSeriesPromise =
     type === '' || type === 'series'
-      ? fetch(`https://v3-cinemeta.strem.io/catalog/series/top/genre=${encodeURIComponent(cleanGenre)}.json`)
+      ? fetch(`https://v3-cinemeta.strem.io/catalog/series/top/genre=${encodeURIComponent(cleanGenre)}.json`, {
+          signal: AbortSignal.timeout(4000),
+        })
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null)
       : Promise.resolve(null)

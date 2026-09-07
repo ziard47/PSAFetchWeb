@@ -28,7 +28,6 @@ import { enable as enableDarkReader, disable as disableDarkReader, setFetchMetho
 
 const WATCHLIST_STORAGE_KEY = 'psa_fetch_watchlist_v1'
 const THEME_MODE_STORAGE_KEY = 'psa_fetch_theme_mode_v1'
-const AGE_VERIFIED_STORAGE_KEY = 'psa_fetch_age_verified_v1'
 
 function isAdultCategory(termOrGenre?: string | null): boolean {
   if (!termOrGenre) return false
@@ -149,26 +148,17 @@ export default function App() {
     }
   })
 
-  // Age Verification State for 18+ Adult Category
-  const [isAgeVerified, setIsAgeVerified] = useState<boolean>(() => {
-    try {
-      return (
-        sessionStorage.getItem(AGE_VERIFIED_STORAGE_KEY) === 'true' ||
-        localStorage.getItem(AGE_VERIFIED_STORAGE_KEY) === 'true'
-      )
-    } catch {
-      return false
-    }
-  })
+  // Age Warning Modal State (Prompts every time Adult genre is opened)
+  const [isAdultUnlocked, setIsAdultUnlocked] = useState<boolean>(false)
   const [isAgeWarningOpen, setIsAgeWarningOpen] = useState(false)
   const [pendingGenre, setPendingGenre] = useState<string | null>(null)
 
   // Check URL parameters on mount for adult category
   useEffect(() => {
-    if ((isAdultCategory(selectedGenre) || isAdultCategory(debouncedQuery)) && !isAgeVerified) {
+    if ((isAdultCategory(selectedGenre) || isAdultCategory(debouncedQuery)) && !isAdultUnlocked) {
       setIsAgeWarningOpen(true)
     }
-  }, [isAgeVerified, selectedGenre, debouncedQuery])
+  }, [isAdultUnlocked, selectedGenre, debouncedQuery])
 
   // Synchronize DarkReader with isDarkMode
   useEffect(() => {
@@ -328,13 +318,7 @@ export default function App() {
   }
 
   const handleConfirmAge = () => {
-    setIsAgeVerified(true)
-    try {
-      sessionStorage.setItem(AGE_VERIFIED_STORAGE_KEY, 'true')
-      localStorage.setItem(AGE_VERIFIED_STORAGE_KEY, 'true')
-    } catch {
-      // Ignored
-    }
+    setIsAdultUnlocked(true)
     setIsAgeWarningOpen(false)
     const target = pendingGenre || 'Adult'
     setPendingGenre(null)
@@ -346,6 +330,7 @@ export default function App() {
   const handleCancelAge = () => {
     setIsAgeWarningOpen(false)
     setPendingGenre(null)
+    setIsAdultUnlocked(false)
     if (isAdultCategory(selectedGenre)) {
       setSelectedGenre(null)
       window.history.pushState({}, '', '/')
@@ -359,11 +344,15 @@ export default function App() {
 
   const handleQuickSearch = (term: string) => {
     const trimmed = term.trim()
-    if (isAdultCategory(trimmed) && !isAgeVerified) {
+    if (isAdultCategory(trimmed)) {
+      setIsAdultUnlocked(false)
       setPendingGenre('Adult')
       setIsAgeWarningOpen(true)
       return
     }
+
+    // Navigating to non-adult search locks adult state
+    setIsAdultUnlocked(false)
 
     if (selectedMovieId) {
       setSelectedMovieId(null)
@@ -385,11 +374,23 @@ export default function App() {
   }
 
   const handleSelectGenre = (genre: string) => {
-    if (isAdultCategory(genre) && !isAgeVerified) {
+    if (isAdultCategory(genre)) {
+      // If clicking to deselect active adult genre
+      if (selectedGenre && isAdultCategory(selectedGenre)) {
+        setIsAdultUnlocked(false)
+        setSelectedGenre(null)
+        window.history.pushState({}, '', '/')
+        return
+      }
+      // Opening adult genre: Always prompt every time
+      setIsAdultUnlocked(false)
       setPendingGenre(genre)
       setIsAgeWarningOpen(true)
       return
     }
+
+    // Navigating to other genre locks adult state
+    setIsAdultUnlocked(false)
 
     if (selectedMovieId) {
       setSelectedMovieId(null)
@@ -410,6 +411,7 @@ export default function App() {
   }
 
   const handleResetSearch = () => {
+    setIsAdultUnlocked(false)
     if (selectedMovieId || window.location.pathname !== '/' || window.location.search !== '') {
       window.history.pushState({}, '', '/')
     }
@@ -444,7 +446,7 @@ export default function App() {
     }
 
     // If attempting to load adult category while unverified, block load until confirmed
-    if ((isAdultCategory(selectedGenre) || isAdultCategory(debouncedQuery)) && !isAgeVerified) {
+    if ((isAdultCategory(selectedGenre) || isAdultCategory(debouncedQuery)) && !isAdultUnlocked) {
       setMovies([])
       setTotalResults(0)
       setIsLoading(false)
@@ -481,7 +483,7 @@ export default function App() {
     return () => {
       isSubscribed = false
     }
-  }, [selectedGenre, debouncedQuery, filters.type, isAgeVerified])
+  }, [selectedGenre, debouncedQuery, filters.type, isAdultUnlocked])
 
   // Load More Pages (for query searches)
   const handleLoadMore = async () => {
