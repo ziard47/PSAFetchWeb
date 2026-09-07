@@ -62,10 +62,41 @@ function extractMovieIdFromUrl(): string | null {
   return null
 }
 
+function extractSearchQueryFromUrl(): string | null {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const query = params.get('s') || params.get('search') || params.get('q')
+    if (query && query.trim()) {
+      return query.trim()
+    }
+  } catch (e) {
+    console.error('Failed to parse URL for search query', e)
+  }
+  return null
+}
+
+function extractGenreFromUrl(): string | null {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const genre = params.get('genre')
+    if (genre && genre.trim()) {
+      return genre.trim()
+    }
+  } catch (e) {
+    console.error('Failed to parse URL for genre', e)
+  }
+  return null
+}
+
+function formatSearchUrl(searchTerm: string): string {
+  const encoded = encodeURIComponent(searchTerm).replace(/%20/g, '+')
+  return `/?s=${encoded}`
+}
+
 export default function App() {
-  const [query, setQuery] = useState('')
-  const [debouncedQuery, setDebouncedQuery] = useState('')
-  const [selectedGenre, setSelectedGenre] = useState<string | null>(null)
+  const [query, setQuery] = useState(() => extractSearchQueryFromUrl() || '')
+  const [debouncedQuery, setDebouncedQuery] = useState(() => extractSearchQueryFromUrl() || '')
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(() => extractGenreFromUrl())
   const [filters, setFilters] = useState<SearchFilters>({
     type: '',
     page: 1,
@@ -184,12 +215,29 @@ export default function App() {
   // Listen for browser Back/Forward (popstate) and initial page load URL
   useEffect(() => {
     const handlePopState = () => {
-      const id = extractMovieIdFromUrl()
-      if (id) {
-        loadMovieById(id, false)
+      const movieId = extractMovieIdFromUrl()
+      if (movieId) {
+        loadMovieById(movieId, false)
       } else {
         setSelectedMovieId(null)
         setSelectedMovieDetails(null)
+        const s = extractSearchQueryFromUrl()
+        const g = extractGenreFromUrl()
+        if (s) {
+          setSelectedGenre(null)
+          setQuery(s)
+          setDebouncedQuery(s)
+        } else if (g) {
+          setQuery('')
+          setDebouncedQuery('')
+          setSelectedGenre(g)
+        } else {
+          setQuery('')
+          setDebouncedQuery('')
+          setSelectedGenre(null)
+          setMovies([])
+          setTotalResults(0)
+        }
       }
     }
 
@@ -204,6 +252,34 @@ export default function App() {
       window.removeEventListener('popstate', handlePopState)
     }
   }, [loadMovieById])
+
+  // Sync URL with search query or genre
+  useEffect(() => {
+    if (selectedMovieId) return
+
+    const currentSearch = extractSearchQueryFromUrl()
+    const currentGenre = extractGenreFromUrl()
+
+    if (debouncedQuery.trim()) {
+      if (currentSearch !== debouncedQuery.trim()) {
+        const newUrl = formatSearchUrl(debouncedQuery.trim())
+        if (currentSearch !== null) {
+          window.history.replaceState({ s: debouncedQuery.trim() }, '', newUrl)
+        } else {
+          window.history.pushState({ s: debouncedQuery.trim() }, '', newUrl)
+        }
+      }
+    } else if (selectedGenre) {
+      if (currentGenre !== selectedGenre) {
+        const newUrl = `/?genre=${encodeURIComponent(selectedGenre)}`
+        window.history.pushState({ genre: selectedGenre }, '', newUrl)
+      }
+    } else {
+      if (currentSearch !== null || currentGenre !== null || (window.location.pathname !== '/' && !window.location.pathname.startsWith('/movie'))) {
+        window.history.replaceState({}, '', '/')
+      }
+    }
+  }, [debouncedQuery, selectedGenre, selectedMovieId])
 
   // Debounce search input
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -220,32 +296,47 @@ export default function App() {
   }
 
   const handleQuickSearch = (term: string) => {
+    const trimmed = term.trim()
     if (selectedMovieId) {
-      window.history.pushState({}, '', '/')
       setSelectedMovieId(null)
       setSelectedMovieDetails(null)
     }
     setSelectedGenre(null)
-    setQuery(term)
-    setDebouncedQuery(term)
+    setQuery(trimmed)
+    setDebouncedQuery(trimmed)
     setFilters((prev) => ({ ...prev, page: 1 }))
+    if (trimmed) {
+      const newUrl = formatSearchUrl(trimmed)
+      if (window.location.search !== `?s=${encodeURIComponent(trimmed).replace(/%20/g, '+')}` || window.location.pathname !== '/') {
+        window.history.pushState({ s: trimmed }, '', newUrl)
+      }
+    } else {
+      window.history.pushState({}, '', '/')
+    }
     window.scrollTo({ top: 300, behavior: 'smooth' })
   }
 
   const handleSelectGenre = (genre: string) => {
     if (selectedMovieId) {
-      window.history.pushState({}, '', '/')
       setSelectedMovieId(null)
       setSelectedMovieDetails(null)
     }
     setQuery('')
     setDebouncedQuery('')
-    setSelectedGenre((prev) => (prev === genre ? null : genre))
+    setSelectedGenre((prev) => {
+      const next = prev === genre ? null : genre
+      if (next) {
+        window.history.pushState({ genre: next }, '', `/?genre=${encodeURIComponent(next)}`)
+      } else {
+        window.history.pushState({}, '', '/')
+      }
+      return next
+    })
     window.scrollTo({ top: 300, behavior: 'smooth' })
   }
 
   const handleResetSearch = () => {
-    if (selectedMovieId || window.location.pathname !== '/') {
+    if (selectedMovieId || window.location.pathname !== '/' || window.location.search !== '') {
       window.history.pushState({}, '', '/')
     }
     setSelectedMovieId(null)
@@ -340,7 +431,13 @@ export default function App() {
   }, [handleSelectMovie])
 
   const handleBackToSearch = () => {
-    window.history.pushState({}, '', '/')
+    if (debouncedQuery.trim()) {
+      window.history.pushState({ s: debouncedQuery.trim() }, '', formatSearchUrl(debouncedQuery.trim()))
+    } else if (selectedGenre) {
+      window.history.pushState({ genre: selectedGenre }, '', `/?genre=${encodeURIComponent(selectedGenre)}`)
+    } else {
+      window.history.pushState({}, '', '/')
+    }
     setSelectedMovieId(null)
     setSelectedMovieDetails(null)
   }

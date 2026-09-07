@@ -439,6 +439,7 @@ h1, h2, h3, h4, h5, h6,
   margin-bottom: 1.25rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -449,6 +450,7 @@ h1, h2, h3, h4, h5, h6,
     line-height: 1.65;
     margin-bottom: 1.85rem;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
   }
 }
 
@@ -653,6 +655,7 @@ h1, h2, h3, h4, h5, h6,
   color: var(--secondary-color);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -678,6 +681,7 @@ h1, h2, h3, h4, h5, h6,
   margin: 0 0 1rem 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

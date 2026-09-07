@@ -16,10 +16,20 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   isLoading,
   onQuickSearch,
 }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (query.trim()) {
+      onQuickSearch(query.trim())
+    }
+  }
+
   return (
     <div className="w-full max-w-4xl mx-auto mb-4 sm:mb-6">
       {/* Theme Search Input Bar */}
-      <div className="bg-white rounded-2xl p-1.5 sm:p-2.5 border-2 border-[#58BCB3] shadow-md sm:shadow-lg shadow-teal-900/5 flex items-center gap-2 sm:gap-3 transition-all focus-within:ring-4 focus-within:ring-teal-100">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-2xl p-1.5 sm:p-2.5 border-2 border-[#58BCB3] shadow-md sm:shadow-lg shadow-teal-900/5 flex items-center gap-2 sm:gap-3 transition-all focus-within:ring-4 focus-within:ring-teal-100"
+      >
         <div className="pl-2.5 sm:pl-3 text-[#58BCB3] flex items-center shrink-0">
           {isLoading ? (
             <i className="fas fa-circle-notch fa-spin text-lg sm:text-xl"></i>
@@ -41,7 +51,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           <button
             type="button"
             onClick={() => onQueryChange('')}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition shrink-0"
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition shrink-0 cursor-pointer"
             title="Clear search"
           >
             <i className="fas fa-times text-xs sm:text-sm"></i>
@@ -49,15 +59,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         )}
 
         <button
-          type="button"
-          onClick={() => query && onQuickSearch(query)}
-          className="bg-[#58BCB3] hover:bg-[#439d95] text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-base transition tracking-wide flex items-center gap-1.5 sm:gap-2 shrink-0 shadow-2xs active:scale-95"
+          type="submit"
+          className="bg-[#58BCB3] hover:bg-[#439d95] text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-base transition tracking-wide flex items-center gap-1.5 sm:gap-2 shrink-0 shadow-2xs active:scale-95 cursor-pointer"
           style={{ fontFamily: 'var(--heading-font)' }}
         >
           <span>SEARCH</span>
           <i className="fas fa-arrow-right text-[10px] sm:text-xs"></i>
         </button>
-      </div>
+      </form>
     </div>
   )
 }
