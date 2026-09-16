@@ -15,6 +15,7 @@ import { WatchlistDrawer } from './components/WatchlistDrawer'
 import { LatestReleasesGrid } from './components/LatestReleasesGrid'
 import { ExtensionModal } from './components/ExtensionModal'
 import { FloatingExtensionButton } from './components/FloatingExtensionButton'
+import { AgeWarningModal } from './components/AgeWarningModal'
 import {
   searchMovies,
   getMovieDetails,
@@ -27,6 +28,12 @@ import { enable as enableDarkReader, disable as disableDarkReader, setFetchMetho
 
 const WATCHLIST_STORAGE_KEY = 'psa_fetch_watchlist_v1'
 const THEME_MODE_STORAGE_KEY = 'psa_fetch_theme_mode_v1'
+
+function isAdultCategory(termOrGenre?: string | null): boolean {
+  if (!termOrGenre) return false
+  const clean = termOrGenre.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
+  return clean === 'adult' || clean === '18' || clean === 'xxx' || clean === 'porn' || clean === 'erotic' || clean === 'erotica'
+}
 
 function extractMovieIdFromUrl(): string | null {
   try {
@@ -140,6 +147,18 @@ export default function App() {
       return false
     }
   })
+
+  // Age Warning Modal State (Prompts every time Adult genre is opened)
+  const [isAdultUnlocked, setIsAdultUnlocked] = useState<boolean>(false)
+  const [isAgeWarningOpen, setIsAgeWarningOpen] = useState(false)
+  const [pendingGenre, setPendingGenre] = useState<string | null>(null)
+
+  // Check URL parameters on mount for adult category
+  useEffect(() => {
+    if ((isAdultCategory(selectedGenre) || isAdultCategory(debouncedQuery)) && !isAdultUnlocked) {
+      setIsAgeWarningOpen(true)
+    }
+  }, [isAdultUnlocked, selectedGenre, debouncedQuery])
 
   // Synchronize DarkReader with isDarkMode
   useEffect(() => {
@@ -298,8 +317,43 @@ export default function App() {
     }, 350)
   }
 
+  const handleConfirmAge = () => {
+    setIsAdultUnlocked(true)
+    setIsAgeWarningOpen(false)
+    const target = pendingGenre || 'Adult'
+    setPendingGenre(null)
+    setSelectedGenre(target)
+    window.history.pushState({ genre: target }, '', `/?genre=${encodeURIComponent(target)}`)
+    window.scrollTo({ top: 300, behavior: 'smooth' })
+  }
+
+  const handleCancelAge = () => {
+    setIsAgeWarningOpen(false)
+    setPendingGenre(null)
+    setIsAdultUnlocked(false)
+    if (isAdultCategory(selectedGenre)) {
+      setSelectedGenre(null)
+      window.history.pushState({}, '', '/')
+    }
+    if (isAdultCategory(query) || isAdultCategory(debouncedQuery)) {
+      setQuery('')
+      setDebouncedQuery('')
+      window.history.pushState({}, '', '/')
+    }
+  }
+
   const handleQuickSearch = (term: string) => {
     const trimmed = term.trim()
+    if (isAdultCategory(trimmed)) {
+      setIsAdultUnlocked(false)
+      setPendingGenre('Adult')
+      setIsAgeWarningOpen(true)
+      return
+    }
+
+    // Navigating to non-adult search locks adult state
+    setIsAdultUnlocked(false)
+
     if (selectedMovieId) {
       setSelectedMovieId(null)
       setSelectedMovieDetails(null)
@@ -320,6 +374,24 @@ export default function App() {
   }
 
   const handleSelectGenre = (genre: string) => {
+    if (isAdultCategory(genre)) {
+      // If clicking to deselect active adult genre
+      if (selectedGenre && isAdultCategory(selectedGenre)) {
+        setIsAdultUnlocked(false)
+        setSelectedGenre(null)
+        window.history.pushState({}, '', '/')
+        return
+      }
+      // Opening adult genre: Always prompt every time
+      setIsAdultUnlocked(false)
+      setPendingGenre(genre)
+      setIsAgeWarningOpen(true)
+      return
+    }
+
+    // Navigating to other genre locks adult state
+    setIsAdultUnlocked(false)
+
     if (selectedMovieId) {
       setSelectedMovieId(null)
       setSelectedMovieDetails(null)
@@ -339,6 +411,7 @@ export default function App() {
   }
 
   const handleResetSearch = () => {
+    setIsAdultUnlocked(false)
     if (selectedMovieId || window.location.pathname !== '/' || window.location.search !== '') {
       window.history.pushState({}, '', '/')
     }
@@ -372,6 +445,14 @@ export default function App() {
       return
     }
 
+    // If attempting to load adult category while unverified, block load until confirmed
+    if ((isAdultCategory(selectedGenre) || isAdultCategory(debouncedQuery)) && !isAdultUnlocked) {
+      setMovies([])
+      setTotalResults(0)
+      setIsLoading(false)
+      return
+    }
+
     let isSubscribed = true
     const doSearch = async () => {
       setIsLoading(true)
@@ -402,7 +483,7 @@ export default function App() {
     return () => {
       isSubscribed = false
     }
-  }, [selectedGenre, debouncedQuery, filters.type])
+  }, [selectedGenre, debouncedQuery, filters.type, isAdultUnlocked])
 
   // Load More Pages (for query searches)
   const handleLoadMore = async () => {
@@ -586,6 +667,32 @@ export default function App() {
                         </button>
                       </div>
 
+                      {/* Adult 18+ Notice Banner */}
+                      {selectedGenre?.toLowerCase() === 'adult' && (
+                        <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-rose-900 shadow-2xs animate-fadeIn">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-rose-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
+                              18+
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold m-0 text-rose-950" style={{ fontFamily: 'var(--heading-font)' }}>
+                                Mature &amp; Adult Content (18+)
+                              </h4>
+                              <p className="text-xs text-rose-700 m-0">
+                                You have confirmed you are 18 or older. Titles indexed in this catalog are restricted to adult audiences.
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleResetSearch}
+                            className="text-xs font-bold text-rose-700 hover:text-rose-900 bg-white/80 hover:bg-white px-3 py-1.5 rounded-lg border border-rose-300 transition shrink-0 self-start sm:self-auto cursor-pointer"
+                          >
+                            Exit Adult Section
+                          </button>
+                        </div>
+                      )}
+
                       {/* Cards Grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                         {movies.map((movie) => (
@@ -679,6 +786,13 @@ export default function App() {
         <ExtensionModal
           open={isExtensionModalOpen}
           onClose={() => setIsExtensionModalOpen(false)}
+        />
+
+        {/* Age Warning (18+) Modal */}
+        <AgeWarningModal
+          open={isAgeWarningOpen}
+          onConfirm={handleConfirmAge}
+          onCancel={handleCancelAge}
         />
 
         {/* Floating Extension Action Button (Bottom Right) */}

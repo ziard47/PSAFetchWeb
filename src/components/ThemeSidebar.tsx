@@ -26,6 +26,7 @@ const POPULAR_GENRES = [
   'Horror',
   'Fantasy',
   'Romance',
+  'Adult',
 ]
 
 export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
@@ -90,7 +91,16 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
               className={`tag-link ${selectedGenre === genre ? 'active' : ''}`}
               onClick={() => onSelectGenre?.(genre)}
             >
-              {genre}
+              {genre === 'Adult' ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <span>Adult</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-600 font-bold border border-rose-400/40 leading-tight">
+                    18+
+                  </span>
+                </span>
+              ) : (
+                genre
+              )}
             </button>
           ))}
         </div>
