@@ -741,7 +741,7 @@ async function resolvePsaTitleToImdbId(
 }
 
 /**
- * Parses items from the official psa.wf/feed/ RSS feed
+ * Parses items from the official psa.rip/feed/ RSS feed
  */
 function parsePsaFeedXml(xmlText: string): { title: string; pureTitle: string; year: string; type: 'movie' | 'series'; poster: string; link: string }[] {
   const items: { title: string; pureTitle: string; year: string; type: 'movie' | 'series'; poster: string; link: string }[] = []
@@ -784,7 +784,7 @@ function parsePsaFeedXml(xmlText: string): { title: string; pureTitle: string; y
 }
 
 /**
- * Fetches latest movie and TV show releases directly from https://psa.wf/feed/
+ * Fetches latest movie and TV show releases directly from https://psa.rip/feed/
  */
 export async function fetchLatestReleases(): Promise<MovieSummary[]> {
   if (cachedPsaReleases && cachedPsaReleases.length > 0) {
@@ -793,9 +793,9 @@ export async function fetchLatestReleases(): Promise<MovieSummary[]> {
 
   const endpoints = [
     '/api/psa-feed/feed/',
-    'https://psa.wf/feed/',
-    `https://corsproxy.io/?${encodeURIComponent('https://psa.wf/feed/')}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://psa.wf/feed/')}`,
+    'https://psa.rip/feed/',
+    `https://corsproxy.io/?${encodeURIComponent('https://psa.rip/feed/')}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://psa.rip/feed/')}`,
   ]
 
   let psaItems: { title: string; pureTitle: string; year: string; type: 'movie' | 'series'; poster: string; link: string }[] = []
