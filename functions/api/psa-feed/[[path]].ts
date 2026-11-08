@@ -2,7 +2,7 @@
 export async function onRequest(context: { request: Request; params: { path?: string[] } }): Promise<Response> {
   const url = new URL(context.request.url)
   const targetPath = url.pathname.replace(/^\/api\/psa-feed/, '')
-  const targetUrl = `https://psa.wf${targetPath}${url.search}`
+  const targetUrl = `https://psa.rip${targetPath}${url.search}`
 
   try {
     const response = await fetch(targetUrl, {

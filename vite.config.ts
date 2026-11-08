@@ -19,7 +19,7 @@ export default defineConfig({
         },
       },
       '/api/psa-feed': {
-        target: 'https://psa.wf',
+        target: 'https://psa.rip',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/psa-feed/, ''),
         headers: {

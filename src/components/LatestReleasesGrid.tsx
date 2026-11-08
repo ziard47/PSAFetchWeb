@@ -57,10 +57,10 @@ export const LatestReleasesGrid: React.FC<LatestReleasesGridProps> = ({
 
   const sectionSubtitle =
     filterType === "movie"
-      ? "Curated movie encodes fetched live from official PSA feed (psa.wf)"
+      ? "Curated movie encodes fetched live from official PSA feed (psa.rip)"
       : filterType === "series"
-        ? "Curated television and series encodes fetched live from official PSA feed (psa.wf)"
-        : "Real-time high-efficiency releases indexed live from official PSA feed (psa.wf)";
+        ? "Curated television and series encodes fetched live from official PSA feed (psa.rip)"
+        : "Real-time high-efficiency releases indexed live from official PSA feed (psa.rip)";
 
   return (
     <div className="mt-2 sm:mt-4">
@@ -71,10 +71,16 @@ export const LatestReleasesGrid: React.FC<LatestReleasesGridProps> = ({
             <i className="fas fa-fire-alt text-sm sm:text-lg"></i>
           </div>
           <div>
-            <h2 className="text-lg sm:text-2xl font-normal tracking-wide text-slate-800 m-0 leading-tight" style={{ fontFamily: 'var(--heading-font)' }}>
+            <h2
+              className="text-lg sm:text-2xl font-normal tracking-wide text-slate-800 m-0 leading-tight"
+              style={{ fontFamily: "var(--heading-font)" }}
+            >
               {sectionTitle}
             </h2>
-            <p className="text-[11px] sm:text-sm text-slate-500 m-0" style={{ fontFamily: 'var(--body-font)' }}>
+            <p
+              className="text-[11px] sm:text-sm text-slate-500 m-0"
+              style={{ fontFamily: "var(--body-font)" }}
+            >
               {sectionSubtitle}
             </p>
           </div>
@@ -86,7 +92,7 @@ export const LatestReleasesGrid: React.FC<LatestReleasesGridProps> = ({
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <i className="fas fa-circle-notch fa-spin text-3xl text-[#58BCB3]"></i>
           <p className="text-sm text-slate-500">
-            Fetching latest releases from official PSA feed (psa.wf)...
+            Fetching latest releases from official PSA feed (psa.rip)...
           </p>
         </div>
       ) : (
