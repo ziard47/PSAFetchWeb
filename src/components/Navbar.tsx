@@ -1,17 +1,17 @@
-import React, { useState } from 'react'
-import logoImg from '../assets/logo.png'
+import React, { useState } from "react";
+import logoImg from "../assets/logo.png";
 
 interface NavbarProps {
-  watchlistCount: number
-  onOpenWatchlist: () => void
-  onResetSearch: () => void
-  onRandomMovie: () => void
-  onQuickSearch?: (term: string) => void
-  onSelectType?: (type: string) => void
-  activeType?: string
-  isDarkMode?: boolean
-  onToggleDarkMode?: () => void
-  onOpenExtensionModal?: () => void
+  watchlistCount: number;
+  onOpenWatchlist: () => void;
+  onResetSearch: () => void;
+  onRandomMovie: () => void;
+  onQuickSearch?: (term: string) => void;
+  onSelectType?: (type: string) => void;
+  activeType?: string;
+  isDarkMode?: boolean;
+  onToggleDarkMode?: () => void;
+  onOpenExtensionModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -21,28 +21,28 @@ export const Navbar: React.FC<NavbarProps> = ({
   onRandomMovie,
   onQuickSearch,
   onSelectType,
-  activeType = '',
+  activeType = "",
   isDarkMode = false,
   onToggleDarkMode,
   onOpenExtensionModal,
 }) => {
-  const [headerSearchQuery, setHeaderSearchQuery] = useState('')
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
+  const [headerSearchQuery, setHeaderSearchQuery] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const handleHeaderSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (headerSearchQuery.trim() && onQuickSearch) {
-      onQuickSearch(headerSearchQuery.trim())
-      setIsMobileSearchOpen(false)
-      setIsMobileMenuOpen(false)
+      onQuickSearch(headerSearchQuery.trim());
+      setIsMobileSearchOpen(false);
+      setIsMobileMenuOpen(false);
     }
-  }
+  };
 
   const handleNavClick = (callback: () => void) => {
-    callback()
-    setIsMobileMenuOpen(false)
-  }
+    callback();
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <header id="masthead" className="site-header sticky top-0 z-50">
@@ -54,17 +54,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div
                 className="site-branding cursor-pointer"
                 onClick={() => {
-                  onResetSearch()
-                  setIsMobileMenuOpen(false)
+                  onResetSearch();
+                  setIsMobileMenuOpen(false);
                 }}
               >
                 <div className="flex items-center gap-2.5 sm:gap-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
-                    <img src={logoImg} alt="PSA Fetch Logo" className="w-full h-full object-cover" />
+                    <img
+                      src={logoImg}
+                      alt="PSA Fetch Logo"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
                     <h1 className="site-title text-xl sm:text-2xl md:text-3xl font-normal tracking-wide text-slate-900 m-0 leading-none">
-                      PSA<span className="brand-accent text-[#58BCB3]">FETCH</span>
+                      PSA
+                      <span className="brand-accent text-[#58BCB3]">FETCH</span>
                     </h1>
                     <p className="site-description text-[10px] sm:text-xs text-slate-500 m-0 uppercase tracking-widest hidden xs:block">
                       Cinema & Series Discovery
@@ -81,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <li>
                     <button
                       type="button"
-                      className={`nav-link-btn ${activeType === '' ? 'active' : ''}`}
+                      className={`nav-link-btn ${activeType === "" ? "active" : ""}`}
                       onClick={onResetSearch}
                     >
                       Home
@@ -90,8 +95,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <li>
                     <button
                       type="button"
-                      className={`nav-link-btn ${activeType === 'movie' ? 'active' : ''}`}
-                      onClick={() => onSelectType?.('movie')}
+                      className={`nav-link-btn ${activeType === "movie" ? "active" : ""}`}
+                      onClick={() => onSelectType?.("movie")}
                     >
                       Movies
                     </button>
@@ -99,8 +104,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <li>
                     <button
                       type="button"
-                      className={`nav-link-btn ${activeType === 'series' ? 'active' : ''}`}
-                      onClick={() => onSelectType?.('series')}
+                      className={`nav-link-btn ${activeType === "series" ? "active" : ""}`}
+                      onClick={() => onSelectType?.("series")}
                     >
                       TV Shows
                     </button>
@@ -121,7 +126,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Right Quick Search Pill & Watchlist & Mobile Toggles */}
             <div className="nav-menu-header-right">
               {/* Desktop Pill Search Bar */}
-              <form onSubmit={handleHeaderSearchSubmit} className="product-search-form">
+              <form
+                onSubmit={handleHeaderSearchSubmit}
+                className="product-search-form"
+              >
                 <input
                   type="search"
                   placeholder="Search titles..."
@@ -129,7 +137,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onChange={(e) => setHeaderSearchQuery(e.target.value)}
                   aria-label="Quick search"
                 />
-                <button type="submit" className="search-submit-btn" title="Search">
+                <button
+                  type="submit"
+                  className="search-submit-btn"
+                  title="Search"
+                >
                   <i className="fas fa-search text-xs"></i>
                 </button>
               </form>
@@ -139,32 +151,38 @@ export const Navbar: React.FC<NavbarProps> = ({
                 type="button"
                 onClick={onToggleDarkMode}
                 className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer active:scale-95 shrink-0"
-                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                title={
+                  isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
+                }
                 aria-label="Toggle dark mode"
               >
-                <i className={`fas ${isDarkMode ? 'fa-sun text-amber-400' : 'fa-moon text-slate-600'} text-xs sm:text-sm`}></i>
+                <i
+                  className={`fas ${isDarkMode ? "fa-sun text-amber-400" : "fa-moon text-slate-600"} text-xs sm:text-sm`}
+                ></i>
               </button>
 
               {/* Mobile Search Toggle Button */}
               <button
                 type="button"
                 onClick={() => {
-                  setIsMobileSearchOpen(!isMobileSearchOpen)
-                  if (isMobileMenuOpen) setIsMobileMenuOpen(false)
+                  setIsMobileSearchOpen(!isMobileSearchOpen);
+                  if (isMobileMenuOpen) setIsMobileMenuOpen(false);
                 }}
                 className="md:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer"
                 title="Search"
                 aria-label="Toggle search bar"
               >
-                <i className={`fas ${isMobileSearchOpen ? 'fa-times' : 'fa-search'} text-xs`}></i>
+                <i
+                  className={`fas ${isMobileSearchOpen ? "fa-times" : "fa-search"} text-xs`}
+                ></i>
               </button>
 
               {/* Watchlist Badge Pill */}
               <button
                 type="button"
                 onClick={() => {
-                  onOpenWatchlist()
-                  setIsMobileMenuOpen(false)
+                  onOpenWatchlist();
+                  setIsMobileMenuOpen(false);
                 }}
                 className="header-watchlist-btn cursor-pointer"
                 title="View Watchlist"
@@ -178,14 +196,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setIsMobileMenuOpen(!isMobileMenuOpen)
-                  if (isMobileSearchOpen) setIsMobileSearchOpen(false)
+                  setIsMobileMenuOpen(!isMobileMenuOpen);
+                  if (isMobileSearchOpen) setIsMobileSearchOpen(false);
                 }}
                 className="md:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-[#439d95] flex items-center justify-center border border-slate-200/80 transition shadow-2xs cursor-pointer"
                 title="Menu"
                 aria-label="Toggle navigation menu"
               >
-                <i className={`fas ${isMobileMenuOpen ? 'fa-times' : 'fa-bars'} text-xs`}></i>
+                <i
+                  className={`fas ${isMobileMenuOpen ? "fa-times" : "fa-bars"} text-xs`}
+                ></i>
               </button>
             </div>
           </div>
@@ -193,7 +213,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Expandable Mobile Search Bar */}
           {isMobileSearchOpen && (
             <div className="md:hidden py-3 border-t border-slate-100 animate-fadeIn">
-              <form onSubmit={handleHeaderSearchSubmit} className="flex items-center gap-2">
+              <form
+                onSubmit={handleHeaderSearchSubmit}
+                className="flex items-center gap-2"
+              >
                 <div className="flex-1 relative flex items-center bg-slate-100 rounded-full border border-slate-200 px-3 py-1.5 focus-within:border-[#58BCB3] focus-within:bg-white transition">
                   <i className="fas fa-search text-xs text-slate-400 mr-2"></i>
                   <input
@@ -207,7 +230,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {headerSearchQuery && (
                     <button
                       type="button"
-                      onClick={() => setHeaderSearchQuery('')}
+                      onClick={() => setHeaderSearchQuery("")}
                       className="text-slate-400 hover:text-slate-600 p-1"
                     >
                       <i className="fas fa-times text-xs"></i>
@@ -217,7 +240,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   type="submit"
                   className="bg-[#58BCB3] text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-xs active:scale-95 transition"
-                  style={{ fontFamily: 'var(--heading-font)' }}
+                  style={{ fontFamily: "var(--heading-font)" }}
                 >
                   Search
                 </button>
@@ -229,7 +252,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {isMobileMenuOpen && (
             <div className="md:hidden py-3 border-t border-slate-100 space-y-3 animate-fadeIn">
               {/* Quick Search inside menu */}
-              <form onSubmit={handleHeaderSearchSubmit} className="flex items-center gap-2">
+              <form
+                onSubmit={handleHeaderSearchSubmit}
+                className="flex items-center gap-2"
+              >
                 <div className="flex-1 relative flex items-center bg-slate-100 rounded-xl border border-slate-200 px-3 py-2 focus-within:border-[#58BCB3] focus-within:bg-white transition">
                   <i className="fas fa-search text-xs text-slate-400 mr-2"></i>
                   <input
@@ -243,7 +269,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   type="submit"
                   className="bg-[#58BCB3] text-white px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider"
-                  style={{ fontFamily: 'var(--heading-font)' }}
+                  style={{ fontFamily: "var(--heading-font)" }}
                 >
                   Go
                 </button>
@@ -255,11 +281,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="button"
                   onClick={() => handleNavClick(onResetSearch)}
                   className={`flex items-center gap-2 p-2.5 rounded-xl border text-sm font-semibold transition ${
-                    activeType === ''
-                      ? 'bg-teal-50 border-teal-200 text-teal-800 shadow-2xs'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                    activeType === ""
+                      ? "bg-teal-50 border-teal-200 text-teal-800 shadow-2xs"
+                      : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                   }`}
-                  style={{ fontFamily: 'var(--heading-font)' }}
+                  style={{ fontFamily: "var(--heading-font)" }}
                 >
                   <i className="fas fa-home text-xs text-[#58BCB3]"></i>
                   <span>Home</span>
@@ -267,13 +293,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => handleNavClick(() => onSelectType?.('movie'))}
+                  onClick={() => handleNavClick(() => onSelectType?.("movie"))}
                   className={`flex items-center gap-2 p-2.5 rounded-xl border text-sm font-semibold transition ${
-                    activeType === 'movie'
-                      ? 'bg-teal-50 border-teal-200 text-teal-800 shadow-2xs'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                    activeType === "movie"
+                      ? "bg-teal-50 border-teal-200 text-teal-800 shadow-2xs"
+                      : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                   }`}
-                  style={{ fontFamily: 'var(--heading-font)' }}
+                  style={{ fontFamily: "var(--heading-font)" }}
                 >
                   <i className="fas fa-film text-xs text-[#58BCB3]"></i>
                   <span>Movies</span>
@@ -281,13 +307,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => handleNavClick(() => onSelectType?.('series'))}
+                  onClick={() => handleNavClick(() => onSelectType?.("series"))}
                   className={`flex items-center gap-2 p-2.5 rounded-xl border text-sm font-semibold transition ${
-                    activeType === 'series'
-                      ? 'bg-teal-50 border-teal-200 text-teal-800 shadow-2xs'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                    activeType === "series"
+                      ? "bg-teal-50 border-teal-200 text-teal-800 shadow-2xs"
+                      : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                   }`}
-                  style={{ fontFamily: 'var(--heading-font)' }}
+                  style={{ fontFamily: "var(--heading-font)" }}
                 >
                   <i className="fas fa-tv text-xs text-[#58BCB3]"></i>
                   <span>TV Shows</span>
@@ -297,7 +323,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="button"
                   onClick={() => handleNavClick(onRandomMovie)}
                   className="flex items-center gap-2 p-2.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-sm font-semibold hover:bg-amber-100 shadow-2xs transition"
-                  style={{ fontFamily: 'var(--heading-font)' }}
+                  style={{ fontFamily: "var(--heading-font)" }}
                 >
                   <i className="fas fa-dice text-xs text-amber-600"></i>
                   <span>Lucky Pick</span>
@@ -310,14 +336,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="button"
                   onClick={() => handleNavClick(() => onOpenExtensionModal?.())}
                   className="w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-[#58BCB3] text-white text-xs font-bold shadow-2xs cursor-pointer active:scale-98 transition"
-                  style={{ fontFamily: 'var(--heading-font)' }}
+                  style={{ fontFamily: "var(--heading-font)" }}
                 >
                   <div className="flex items-center gap-2">
                     <i className="fas fa-puzzle-piece text-white"></i>
                     <span>PSA Grabber Extension (Edge / Chrome)</span>
                   </div>
                   <span className="bg-white/25 text-white px-2 py-0.5 rounded-md text-[10px] font-bold">
-                    v2.1.3
+                    v2.2.0
                   </span>
                 </button>
 
@@ -325,31 +351,33 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="button"
                   onClick={() => handleNavClick(onOpenWatchlist)}
                   className="w-full flex items-center justify-between p-2.5 rounded-xl bg-teal-50/60 border border-teal-200/80 text-teal-900 text-xs font-bold cursor-pointer"
-                  style={{ fontFamily: 'var(--heading-font)' }}
+                  style={{ fontFamily: "var(--heading-font)" }}
                 >
                   <div className="flex items-center gap-2">
                     <i className="fas fa-bookmark text-[#58BCB3]"></i>
                     <span>Saved Watchlist</span>
                   </div>
                   <span className="bg-[#58BCB3] text-white px-2 py-0.5 rounded-md text-[11px]">
-                    {watchlistCount} {watchlistCount === 1 ? 'item' : 'items'}
+                    {watchlistCount} {watchlistCount === 1 ? "item" : "items"}
                   </span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => {
-                    onToggleDarkMode?.()
+                    onToggleDarkMode?.();
                   }}
                   className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold cursor-pointer"
-                  style={{ fontFamily: 'var(--heading-font)' }}
+                  style={{ fontFamily: "var(--heading-font)" }}
                 >
                   <div className="flex items-center gap-2">
-                    <i className={`fas ${isDarkMode ? 'fa-sun text-amber-400' : 'fa-moon text-slate-600'} text-xs`}></i>
+                    <i
+                      className={`fas ${isDarkMode ? "fa-sun text-amber-400" : "fa-moon text-slate-600"} text-xs`}
+                    ></i>
                     <span>Theme Appearance</span>
                   </div>
                   <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">
-                    {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+                    {isDarkMode ? "Dark Mode" : "Light Mode"}
                   </span>
                 </button>
               </div>
@@ -358,5 +386,5 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
     </header>
-  )
-}
+  );
+};

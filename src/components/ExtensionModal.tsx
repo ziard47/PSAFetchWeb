@@ -1,35 +1,35 @@
-import React, { useState } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  IconButton,
-  Slide,
-} from '@mui/material'
-import { TransitionProps } from '@mui/material/transitions'
-import CloseIcon from '@mui/icons-material/Close'
-import ExtensionIcon from '@mui/icons-material/Extension'
-import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-import FileDownloadIcon from '@mui/icons-material/FileDownload'
+import React, { useState } from "react";
+import { Dialog, DialogContent, IconButton, Slide } from "@mui/material";
+import { TransitionProps } from "@mui/material/transitions";
+import CloseIcon from "@mui/icons-material/Close";
+import ExtensionIcon from "@mui/icons-material/Extension";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
-    children: React.ReactElement<any, any>
+    children: React.ReactElement<any, any>;
   },
-  ref: React.Ref<unknown>
+  ref: React.Ref<unknown>,
 ) {
-  return <Slide direction="up" ref={ref} {...props} />
-})
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 interface ExtensionModalProps {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
-export const EDGE_STORE_URL = 'https://microsoftedge.microsoft.com/addons/detail/psa-fetch/dbadhpofhkkhlckegioamnamkhbcgpcj'
-export const GITHUB_RELEASE_URL = 'https://github.com/ziard47/PSA-Grabber/releases/tag/release-v2.1.3'
+export const EDGE_STORE_URL =
+  "https://microsoftedge.microsoft.com/addons/detail/psa-fetch/dbadhpofhkkhlckegioamnamkhbcgpcj";
+export const GITHUB_RELEASE_URL =
+  "https://github.com/ziard47/PSA-Grabber/releases/tag/release-v2.2.0";
 
-export const ExtensionModal: React.FC<ExtensionModalProps> = ({ open, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'edge' | 'chrome'>('edge')
+export const ExtensionModal: React.FC<ExtensionModalProps> = ({
+  open,
+  onClose,
+}) => {
+  const [activeTab, setActiveTab] = useState<"edge" | "chrome">("edge");
 
   return (
     <Dialog
@@ -43,10 +43,10 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({ open, onClose })
       slotProps={{
         paper: {
           sx: {
-            borderRadius: '24px',
-            bgcolor: '#ffffff',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            overflow: 'hidden',
+            borderRadius: "24px",
+            bgcolor: "#ffffff",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            overflow: "hidden",
             p: 0,
             m: { xs: 1.5, sm: 2 },
           },
@@ -59,18 +59,18 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({ open, onClose })
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner shrink-0">
-                <ExtensionIcon sx={{ fontSize: 28, color: '#ffffff' }} />
+                <ExtensionIcon sx={{ fontSize: 28, color: "#ffffff" }} />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3
                     className="text-lg sm:text-xl font-bold m-0 tracking-wide text-white leading-tight"
-                    style={{ fontFamily: 'var(--heading-font)' }}
+                    style={{ fontFamily: "var(--heading-font)" }}
                   >
                     PSA GRABBER EXTENSION
                   </h3>
                   <span className="bg-white/20 text-white text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full backdrop-blur-xs whitespace-nowrap">
-                    v2.1.3
+                    v2.2.0
                   </span>
                 </div>
                 <p className="text-xs text-teal-100 m-0 mt-0.5">
@@ -83,9 +83,9 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({ open, onClose })
               onClick={onClose}
               size="small"
               sx={{
-                color: '#ffffff',
-                bgcolor: 'rgba(255, 255, 255, 0.15)',
-                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' },
+                color: "#ffffff",
+                bgcolor: "rgba(255, 255, 255, 0.15)",
+                "&:hover": { bgcolor: "rgba(255, 255, 255, 0.3)" },
               }}
             >
               <CloseIcon fontSize="small" />
@@ -108,7 +108,9 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({ open, onClose })
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                    <h4 className="text-sm sm:text-base font-bold text-slate-900 m-0">Microsoft Edge</h4>
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900 m-0">
+                      Microsoft Edge
+                    </h4>
                     <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
                       Official Store
                     </span>
@@ -124,7 +126,7 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({ open, onClose })
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-[#58BCB3] hover:bg-[#439d95] text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition shrink-0 whitespace-nowrap active:scale-95"
-                style={{ fontFamily: 'var(--heading-font)' }}
+                style={{ fontFamily: "var(--heading-font)" }}
               >
                 <span>GET FOR EDGE</span>
                 <OpenInNewIcon sx={{ fontSize: 16 }} />
@@ -139,7 +141,9 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({ open, onClose })
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                    <h4 className="text-sm sm:text-base font-bold text-slate-900 m-0">Chrome, Brave & Chromium</h4>
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900 m-0">
+                      Chrome, Brave & Chromium
+                    </h4>
                     <span className="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
                       GitHub Release
                     </span>
@@ -155,10 +159,10 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({ open, onClose })
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition shrink-0 whitespace-nowrap active:scale-95"
-                style={{ fontFamily: 'var(--heading-font)' }}
+                style={{ fontFamily: "var(--heading-font)" }}
               >
                 <i className="fab fa-github text-sm"></i>
-                <span>GET V2.1.3 RELEASE</span>
+                <span>GET V2.2.0 RELEASE</span>
                 <FileDownloadIcon sx={{ fontSize: 16 }} />
               </a>
             </div>
@@ -174,18 +178,22 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({ open, onClose })
               <div className="flex gap-1 bg-slate-100 p-0.5 rounded-lg">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('edge')}
+                  onClick={() => setActiveTab("edge")}
                   className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition cursor-pointer ${
-                    activeTab === 'edge' ? 'bg-white text-[#439d95] shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                    activeTab === "edge"
+                      ? "bg-white text-[#439d95] shadow-2xs"
+                      : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   Microsoft Edge
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('chrome')}
+                  onClick={() => setActiveTab("chrome")}
                   className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition cursor-pointer ${
-                    activeTab === 'chrome' ? 'bg-white text-[#439d95] shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                    activeTab === "chrome"
+                      ? "bg-white text-[#439d95] shadow-2xs"
+                      : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   Chrome / Brave / Opera
@@ -193,24 +201,52 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({ open, onClose })
               </div>
             </div>
 
-            {activeTab === 'edge' ? (
+            {activeTab === "edge" ? (
               <ol className="text-xs text-slate-600 space-y-1.5 pl-4 list-decimal marker:text-[#58BCB3] marker:font-bold">
-                <li>Click the <strong>"GET FOR EDGE"</strong> button above to open the official Microsoft Edge Add-ons store.</li>
-                <li>Click <strong>"Get"</strong> and confirm with <strong>"Add extension"</strong>.</li>
-                <li>Browse PSA Rips — the extension will automatically extract and display clean magnet links directly on the page!</li>
+                <li>
+                  Click the <strong>"GET FOR EDGE"</strong> button above to open
+                  the official Microsoft Edge Add-ons store.
+                </li>
+                <li>
+                  Click <strong>"Get"</strong> and confirm with{" "}
+                  <strong>"Add extension"</strong>.
+                </li>
+                <li>
+                  Browse PSA Rips — the extension will automatically extract and
+                  display clean magnet links directly on the page!
+                </li>
               </ol>
             ) : (
               <ol className="text-xs text-slate-600 space-y-1.5 pl-4 list-decimal marker:text-[#58BCB3] marker:font-bold">
-                <li>Download the latest release zip file from the <strong>GitHub Release page</strong>.</li>
+                <li>
+                  Download the latest release zip file from the{" "}
+                  <strong>GitHub Release page</strong>.
+                </li>
                 <li>Extract the downloaded zip folder onto your computer.</li>
-                <li>In your Chromium browser, go to <code className="bg-slate-100 px-1.5 py-0.5 rounded text-teal-800 font-mono text-[11px]">chrome://extensions</code> (or <code className="bg-slate-100 px-1.5 py-0.5 rounded text-teal-800 font-mono text-[11px]">brave://extensions</code>).</li>
-                <li>Enable <strong>"Developer mode"</strong> in the top-right corner.</li>
-                <li>Click <strong>"Load unpacked"</strong> and select the extracted extension folder.</li>
+                <li>
+                  In your Chromium browser, go to{" "}
+                  <code className="bg-slate-100 px-1.5 py-0.5 rounded text-teal-800 font-mono text-[11px]">
+                    chrome://extensions
+                  </code>{" "}
+                  (or{" "}
+                  <code className="bg-slate-100 px-1.5 py-0.5 rounded text-teal-800 font-mono text-[11px]">
+                    brave://extensions
+                  </code>
+                  ).
+                </li>
+                <li>
+                  Enable <strong>"Developer mode"</strong> in the top-right
+                  corner.
+                </li>
+                <li>
+                  Click <strong>"Load unpacked"</strong> and select the
+                  extracted extension folder.
+                </li>
               </ol>
             )}
           </div>
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

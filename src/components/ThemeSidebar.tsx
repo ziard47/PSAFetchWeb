@@ -1,33 +1,33 @@
-import React from 'react'
-import { SearchFilters, WatchlistItem } from '../types/movie'
+import React from "react";
+import { SearchFilters, WatchlistItem } from "../types/movie";
 
 interface ThemeSidebarProps {
-  filters: SearchFilters
-  onFiltersChange: (filters: SearchFilters) => void
-  onQuickSearch: (term: string) => void
-  watchlist: WatchlistItem[]
-  onOpenWatchlist: () => void
-  onSelectMovieId?: (imdbID: string) => void
-  selectedGenre?: string | null
-  onSelectGenre?: (genre: string) => void
-  onOpenExtensionModal?: () => void
+  filters: SearchFilters;
+  onFiltersChange: (filters: SearchFilters) => void;
+  onQuickSearch: (term: string) => void;
+  watchlist: WatchlistItem[];
+  onOpenWatchlist: () => void;
+  onSelectMovieId?: (imdbID: string) => void;
+  selectedGenre?: string | null;
+  onSelectGenre?: (genre: string) => void;
+  onOpenExtensionModal?: () => void;
 }
 
 const POPULAR_GENRES = [
-  'Action',
-  'Sci-Fi',
-  'Drama',
-  'Thriller',
-  'Comedy',
-  'Animation',
-  'Crime',
-  'Mystery',
-  'Adventure',
-  'Horror',
-  'Fantasy',
-  'Romance',
-  'Adult',
-]
+  "Action",
+  "Sci-Fi",
+  "Drama",
+  "Thriller",
+  "Comedy",
+  "Animation",
+  "Crime",
+  "Mystery",
+  "Adventure",
+  "Horror",
+  "Fantasy",
+  "Romance",
+  "Adult",
+];
 
 export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
   filters,
@@ -39,13 +39,13 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
   onSelectGenre,
   onOpenExtensionModal,
 }) => {
-  const handleTypeSelect = (type: SearchFilters['type']) => {
+  const handleTypeSelect = (type: SearchFilters["type"]) => {
     onFiltersChange({
       ...filters,
-      type: filters.type === type ? '' : type,
+      type: filters.type === type ? "" : type,
       page: 1,
-    })
-  }
+    });
+  };
 
   return (
     <aside id="secondary" className="site-sidebar sidebar-width">
@@ -57,20 +57,20 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
         </h2>
         <div className="filter-type-list">
           <div
-            className={`filter-type-item ${filters.type === '' ? 'active' : ''}`}
-            onClick={() => handleTypeSelect('')}
+            className={`filter-type-item ${filters.type === "" ? "active" : ""}`}
+            onClick={() => handleTypeSelect("")}
           >
             <span>All</span>
           </div>
           <div
-            className={`filter-type-item ${filters.type === 'movie' ? 'active' : ''}`}
-            onClick={() => handleTypeSelect('movie')}
+            className={`filter-type-item ${filters.type === "movie" ? "active" : ""}`}
+            onClick={() => handleTypeSelect("movie")}
           >
             <span>Movies</span>
           </div>
           <div
-            className={`filter-type-item ${filters.type === 'series' ? 'active' : ''}`}
-            onClick={() => handleTypeSelect('series')}
+            className={`filter-type-item ${filters.type === "series" ? "active" : ""}`}
+            onClick={() => handleTypeSelect("series")}
           >
             <span>TV Shows</span>
           </div>
@@ -88,10 +88,10 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
             <button
               key={genre}
               type="button"
-              className={`tag-link ${selectedGenre === genre ? 'active' : ''}`}
+              className={`tag-link ${selectedGenre === genre ? "active" : ""}`}
               onClick={() => onSelectGenre?.(genre)}
             >
-              {genre === 'Adult' ? (
+              {genre === "Adult" ? (
                 <span className="inline-flex items-center gap-1.5">
                   <span>Adult</span>
                   <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-600 font-bold border border-rose-400/40 leading-tight">
@@ -120,7 +120,8 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
 
         {watchlist.length === 0 ? (
           <p className="text-sm text-slate-500 my-2 italic">
-            No titles bookmarked yet. Tap the bookmark icon on any title to save it for later.
+            No titles bookmarked yet. Tap the bookmark icon on any title to save
+            it for later.
           </p>
         ) : (
           <div className="divide-y divide-slate-100 mb-3">
@@ -130,7 +131,7 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
                 className="sidebar-mini-movie"
                 onClick={() => onSelectMovieId?.(item.imdbID)}
               >
-                {item.Poster && item.Poster !== 'N/A' ? (
+                {item.Poster && item.Poster !== "N/A" ? (
                   <img src={item.Poster} alt={item.Title} />
                 ) : (
                   <div className="w-11 h-14 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs">
@@ -139,7 +140,9 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
                 )}
                 <div className="mini-info flex-1 min-w-0">
                   <h4 className="truncate">{item.Title}</h4>
-                  <span>{item.Year} • {item.Type || 'Film'}</span>
+                  <span>
+                    {item.Year} • {item.Type || "Film"}
+                  </span>
                 </div>
               </div>
             ))}
@@ -163,17 +166,21 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
             <div className="w-7 h-7 rounded-lg bg-teal-100 text-[#439d95] flex items-center justify-center text-xs">
               <i className="fas fa-puzzle-piece"></i>
             </div>
-            <h2 className="widget-title m-0 text-base font-bold text-slate-800" style={{ fontFamily: 'var(--heading-font)' }}>
+            <h2
+              className="widget-title m-0 text-base font-bold text-slate-800"
+              style={{ fontFamily: "var(--heading-font)" }}
+            >
               PSA GRABBER
             </h2>
           </div>
           <span className="bg-[#58BCB3] text-white text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full">
-            v2.1.3
+            v2.2.0
           </span>
         </div>
 
         <p className="text-xs text-slate-600 leading-relaxed mb-3">
-          Grab all magnet links directly inside the PSA Rips website without redirects, ads, or manual copy-pasting.
+          Grab all magnet links directly inside the PSA Rips website without
+          redirects, ads, or manual copy-pasting.
         </p>
 
         <div className="space-y-2 mb-3">
@@ -191,7 +198,7 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
           </a>
 
           <a
-            href="https://github.com/ziard47/PSA-Grabber/releases/tag/release-v2.1.3"
+            href="https://github.com/ziard47/PSA-Grabber/releases/tag/release-v2.2.0"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold flex items-center justify-between transition shadow-2xs group"
@@ -222,7 +229,9 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
         </h2>
         <div className="text-sm text-slate-600 leading-relaxed">
           <p className="mb-2">
-            PSA Fetch indexes thousands of verified high-efficiency x265/HEVC encodes, providing seamless metadata lookup, IMDb ratings, and direct release sources.
+            PSA Fetch indexes thousands of verified high-efficiency x265/HEVC
+            encodes, providing seamless metadata lookup, IMDb ratings, and
+            direct release sources.
           </p>
           <div className="flex items-center gap-2 text-xs text-[#58BCB3] font-semibold mt-3">
             <i className="fas fa-check-circle"></i>
@@ -231,5 +240,5 @@ export const ThemeSidebar: React.FC<ThemeSidebarProps> = ({
         </div>
       </div>
     </aside>
-  )
-}
+  );
+};
